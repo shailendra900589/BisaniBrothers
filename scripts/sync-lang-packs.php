@@ -9,6 +9,11 @@ $root = dirname(__DIR__);
 $en = require $root . '/lang/en.php';
 $locales = require $root . '/lang/locale-config.php';
 $packDir = $root . '/lang/packs';
+$footerExtraFile = $packDir . '/footer-extra.php';
+$footerExtra = is_file($footerExtraFile) ? require $footerExtraFile : [];
+if (!is_array($footerExtra)) {
+    $footerExtra = [];
+}
 $indexContentFile = $packDir . '/index-content.php';
 $indexContent = is_file($indexContentFile) ? require $indexContentFile : [];
 if (!is_array($indexContent)) {
@@ -97,6 +102,10 @@ foreach (array_keys($locales) as $code) {
         if (!empty($extra['testimonials']) && is_array($extra['testimonials'])) {
             $pack['testimonials'] = $extra['testimonials'];
         }
+    }
+
+    if (!empty($footerExtra[$code]) && is_array($footerExtra[$code])) {
+        $pack['footer'] = sync_deep_merge($pack['footer'] ?? [], $footerExtra[$code]);
     }
 
     $langPath = "{$root}/lang/{$code}.php";

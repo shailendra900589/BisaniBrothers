@@ -3,6 +3,8 @@ require 'db.php';
 require_once 'includes/seo.php';
 require_once 'includes/blog-helpers.php';
 
+@set_time_limit(180);
+
 $post = null;
 if (isset($_GET['slug'])) {
     $post = blog_fetch_by_slug($pdo, $_GET['slug']);

@@ -91,17 +91,6 @@ return array (
     'draft' => 'ड्राफ्ट',
     'locale_fallback' => 'यह पेज अंग्रेज़ी में दिखाया जा रहा है — हिंदी संस्करण अभी उपलब्ध नहीं है।',
   ),
-  'form' =>
-  array (
-    'enquiry_success_title' => 'संदेश भेज दिया गया!',
-    'enquiry_success_desc' => 'हमें आपकी पूछताछ मिल गई है। हम जल्द ही आपसे संपर्क करेंगे।',
-    'enquiry_duplicate_title' => 'पहले से जमा है',
-    'enquiry_duplicate_desc' => 'यह ईमेल या मोबाइल नंबर पहले से हमारे पास है। हमारी टीम जल्द संपर्क करेगी।',
-    'enquiry_invalid_title' => 'अधूरा फॉर्म',
-    'enquiry_invalid_desc' => 'कृपया नाम, वैध ईमेल, 10 अंकों का मोबाइल और संदेश भरें।',
-    'enquiry_error_title' => 'जमा नहीं हो सका',
-    'enquiry_error_desc' => 'कुछ गलत हुआ। कृपया थोड़ी देर बाद फिर कोशिश करें।',
-  ),
   'index' => 
   array (
     'hero_line1' => 'आपकी सेल्स और ग्रोथ',
