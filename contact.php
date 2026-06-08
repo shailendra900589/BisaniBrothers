@@ -96,7 +96,7 @@ include 'includes/header.php';
                         <a href="https://www.instagram.com/bisanibrothers/"  target="_blank" class="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:bg-[#2fcaf0] hover:border-[#2fcaf0] hover:text-[#173978] transition-all">
                             <i class="fa-brands fa-instagram"></i>
                         </a>
-                         <a href="https://share.google/zuqMAYoIbd4nXn2Yy" target="_blank" class="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:bg-[#2fcaf0] hover:border-[#2fcaf0] hover:text-[#173978] transition-all">
+                         <a href="<?php echo seo_escape(SEO_YOUTUBE_CHANNEL); ?>" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:bg-[#2fcaf0] hover:border-[#2fcaf0] hover:text-[#173978] transition-all">
                             <i class="fa-brands fa-youtube"></i>
                         </a>
                     </div>

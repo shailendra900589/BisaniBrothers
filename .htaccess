@@ -55,17 +55,13 @@ RewriteCond %{THE_REQUEST} \s//([^\s]*) [NC]
 RewriteRule ^ https://www.bisanibrothers.com/%1 [R=301,L]
 
 # ----------------------------------------------------
-#  FIX: FORCE WWW + HTTPS (production only)
+#  FIX: SINGLE-HOP WWW + HTTPS (production only)
 # ----------------------------------------------------
 RewriteCond %{HTTP_HOST} !^localhost(:\d+)?$ [NC]
 RewriteCond %{HTTP_HOST} !^127\.0\.0\.1(:\d+)?$ [NC]
+RewriteCond %{HTTPS} off [OR]
 RewriteCond %{HTTP_HOST} !^www\. [NC]
-RewriteRule ^(.*)$ https://www.%{HTTP_HOST}/$1 [R=301,L]
-
-RewriteCond %{HTTP_HOST} !^localhost(:\d+)?$ [NC]
-RewriteCond %{HTTP_HOST} !^127\.0\.0\.1(:\d+)?$ [NC]
-RewriteCond %{HTTPS} off
-RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+RewriteRule ^(.*)$ https://www.bisanibrothers.com/$1 [R=301,L]
 
 # ----------------------------------------------------
 #  SITEMAP, FEEDS & SEARCH DISCOVERY

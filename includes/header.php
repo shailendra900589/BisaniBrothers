@@ -41,8 +41,8 @@ if ($pageLocaleMeta) {
 }
 
 // Default SEO values if not set on individual pages
-if (!isset($pageTitle)) { $pageTitle = "Bisani Brothers - Excellence & Trust | Sales, Growth & Staffing"; }
-if (!isset($pageDesc))  { $pageDesc = "Welcome to Bisani Brothers. We provide top-notch sales execution, staffing, and market research services to scale your business."; }
+if (!isset($pageTitle)) { $pageTitle = "FinTech Sales & Growth Solutions | Bisani Brothers"; }
+if (!isset($pageDesc))  { $pageDesc = "Empowering businesses with smart, scalable FinTech solutions. Bisani Brothers drives sales, growth, staffing, and on-ground business execution across India."; }
 if (!isset($pageImg))   { $pageImg = seo_absolute_image(null, $base_url); }
 if (!isset($pageKeywords)) { $pageKeywords = seo_get_page_keywords(); }
 if (!isset($robotsMeta)) { $robotsMeta = 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'; }
@@ -54,6 +54,9 @@ if (empty($pageSchemas) && $scriptName !== '404' && $scriptName !== 'blog-detail
     if (in_array($scriptName, SEO_SERVICE_PAGES, true)) {
         $pageSchemas[] = seo_service_schema($pageTitle, $pageDesc, $canonical_url);
     }
+}
+if ($scriptName === 'index') {
+    $pageSchemas[] = seo_local_business_schema($base_url);
 }
 
 $orgSchema = seo_organization_schema($base_url);
@@ -148,6 +151,9 @@ $navbar_height = "h-16";
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
 
+<?php if ($scriptName === 'index'): ?>
+    <link rel="preload" as="image" href="assets/images/bg_image.webp" fetchpriority="high">
+<?php endif; ?>
     <link rel="stylesheet" href="<?php echo bb_stylesheet('tailwind.css'); ?>">
     <link rel="stylesheet" href="<?php echo bb_stylesheet('styles.css'); ?>">
     <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css" media="print" onload="this.media='all'">
@@ -156,16 +162,14 @@ $navbar_height = "h-16";
     <link rel="stylesheet" href="<?php echo bb_stylesheet('blog.css'); ?>">
 <?php endif; ?>
 
-	<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-HXR4B7F4YT"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-HXR4B7F4YT');
-  gtag('set', 'user_properties', { site_language: '<?php echo locale_current(); ?>' });
-</script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-HXR4B7F4YT');
+    gtag('set', 'user_properties', { site_language: '<?php echo locale_current(); ?>' });
+    </script>
+    <script defer src="https://www.googletagmanager.com/gtag/js?id=G-HXR4B7F4YT"></script>
 
 <?php if (meta_pixel_active() && !in_array($scriptName, ['blog', 'blog-details'], true)): ?>
     <script async src="<?php echo seo_escape(meta_pixel_script_url($base_url)); ?>"></script>
@@ -175,7 +179,7 @@ $navbar_height = "h-16";
 
 <body class="font-sans text-gray-800 antialiased bg-gray-50 <?php echo in_array($scriptName, ['blog', 'blog-details'], true) ? 'blog-layout' : 'overflow-x-hidden'; ?>">
 <?php if (meta_pixel_active()): ?>
-    <noscript><img height="1" width="1" style="display:none" alt="" src="<?php echo seo_escape(meta_pixel_beacon_url($base_url)); ?>" /></noscript>
+    <noscript><img height="1" width="1" class="bb-pixel-hidden" alt="" src="<?php echo seo_escape(meta_pixel_beacon_url($base_url)); ?>" /></noscript>
 <?php endif; ?>
 
     <header id="main-header" class="fixed w-full z-50 top-0 transition-transform duration-300 ease-in-out bg-white shadow-sm">
@@ -207,7 +211,7 @@ $navbar_height = "h-16";
                 <a href="https://www.instagram.com/bisanibrothers/" target="_blank" rel="noopener noreferrer" class="top-bar-social-link" aria-label="Instagram">
                     <i class="fa-brands fa-instagram"></i>
                 </a>
-                <a href="https://share.google/zuqMAYoIbd4nXn2Yy" target="_blank" rel="noopener noreferrer" class="top-bar-social-link" aria-label="YouTube">
+                <a href="<?php echo seo_escape(SEO_YOUTUBE_CHANNEL); ?>" target="_blank" rel="noopener noreferrer" class="top-bar-social-link" aria-label="YouTube">
                     <i class="fa-brands fa-youtube"></i>
                 </a>
             </div>

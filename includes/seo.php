@@ -392,7 +392,59 @@ function seo_organization_schema(string $base_url): array
             'https://www.facebook.com/bisanibrothers',
             'https://www.instagram.com/bisanibrothers',
             'https://twitter.com/bisanibrothers',
-            'https://www.youtube.com/@bisanibrothers',
+            SEO_YOUTUBE_CHANNEL,
+        ],
+    ];
+}
+
+function seo_local_business_schema(string $base_url): array
+{
+    $root = rtrim($base_url, '/');
+
+    return [
+        '@context' => 'https://schema.org',
+        '@type'    => 'LocalBusiness',
+        '@id'      => $root . '/#localbusiness',
+        'name'     => SEO_SITE_NAME,
+        'alternateName' => 'Bisani Brothers',
+        'url'      => $root . '/',
+        'image'    => $root . '/assets/images/logos.png',
+        'logo'     => $root . '/assets/images/logos.png',
+        'description' => 'Empowering businesses with smart, scalable FinTech, sales, staffing, and on-ground business solutions across India.',
+        'telephone' => '+91-522-4530208',
+        'email'    => 'contact@bisanibrother.com',
+        'priceRange' => '$$',
+        'address'  => [
+            '@type'           => 'PostalAddress',
+            'streetAddress'   => 'D-1012/13 Indira Nagar',
+            'addressLocality' => 'Lucknow',
+            'addressRegion'   => 'Uttar Pradesh',
+            'postalCode'      => '226016',
+            'addressCountry'  => 'IN',
+        ],
+        'geo' => [
+            '@type'     => 'GeoCoordinates',
+            'latitude'  => 26.8467,
+            'longitude' => 80.9462,
+        ],
+        'areaServed' => [
+            '@type' => 'Country',
+            'name'  => 'India',
+        ],
+        'openingHoursSpecification' => [
+            [
+                '@type'     => 'OpeningHoursSpecification',
+                'dayOfWeek' => ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+                'opens'     => '09:30',
+                'closes'    => '18:30',
+            ],
+        ],
+        'sameAs' => [
+            'https://www.linkedin.com/company/bisani-brothers',
+            SEO_YOUTUBE_CHANNEL,
+            'https://www.facebook.com/bisanibrothers',
+            'https://www.instagram.com/bisanibrothers',
+            'https://twitter.com/bisanibrothers',
         ],
     ];
 }

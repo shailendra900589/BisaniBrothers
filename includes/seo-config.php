@@ -8,6 +8,7 @@ define('SEO_PRODUCTION_URL', 'https://www.bisanibrothers.com');
 define('SEO_INDEXNOW_KEY', 'bisanibrothers2026indexnow');
 define('SEO_DEFAULT_KEYWORDS', 'Bisani Brothers, sales execution, staffing solutions, market research India, BTL activation, lending collection, business growth, FinTech India, on-ground execution');
 define('SEO_TWITTER_HANDLE', '@bisanibrothers');
+define('SEO_YOUTUBE_CHANNEL', 'https://www.youtube.com/@bisanibrothers');
 /** Meta Pixel ID — XOR-encrypted hex (never store plain ID here). Regenerate: php scripts/gen-pixel-enc.php */
 define('SEO_META_PIXEL_ENC', 'dc4f2585d030cead98cfe8da079fb1');
 define('SEO_GEO_REGION', 'IN-UP');
@@ -67,7 +68,7 @@ define('SEO_SERVICE_PAGES', [
 ]);
 
 define('SEO_PAGE_KEYWORDS', [
-    'index'                  => 'Bisani Brothers, sales and growth partner India, business solutions Lucknow, customer acquisition, sales targets, merchant onboarding, field execution, staffing solutions, market research India',
+    'index'                  => 'Bisani Brothers, empowering businesses, smart scalable solutions, FinTech sales growth India, business solutions Lucknow, staffing solutions, merchant onboarding, field execution, market research India',
     'about'                  => 'about Bisani Brothers, business execution partner India, scalable operations, on-ground teams, Lucknow business solutions, sales staffing company, trusted growth partner',
     'sales-growth'           => 'sales execution India, merchant onboarding, customer acquisition, regional sales growth, field sales teams, B2B sales Lucknow, sales outsourcing India, revenue growth partner',
     'survey-market-research' => 'market research India, survey execution, on-ground data collection, consumer insights, field research, market survey Lucknow, retail audit India, data collection agency',

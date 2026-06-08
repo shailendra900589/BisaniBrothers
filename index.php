@@ -19,7 +19,9 @@ include 'includes/header.php';
         <div class="absolute inset-0 z-0">
             <img src="assets/images/bg_image.webp" 
                  alt="Hero Background" 
-                 class="w-full h-full object-cover">
+                 class="w-full h-full object-cover"
+                 fetchpriority="high"
+                 decoding="async">
         </div>
 
         <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-[#2fcaf0] opacity-10 blur-[100px] animate-pulse z-0"></div>
@@ -162,9 +164,7 @@ include 'includes/header.php';
 
     <section class="py-16 sm:py-24 bg-[#173978] relative w-full" id="services">
         
-        <div class="absolute inset-0 opacity-5 pointer-events-none" 
-             style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 40px 40px;">
-        </div>
+        <div class="absolute inset-0 opacity-5 pointer-events-none bb-dot-grid-white-fine"></div>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             
@@ -299,9 +299,7 @@ include 'includes/header.php';
 
     <section class="py-16 sm:py-24 bg-[#173978] relative w-full" id="industries">
         
-        <div class="absolute inset-0 opacity-5" 
-             style="background-image: radial-gradient(#ffffff 2px, transparent 2px); background-size: 30px 30px;">
-        </div>
+        <div class="absolute inset-0 opacity-5 bb-dot-grid-white"></div>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 mb-8 sm:mb-12 text-center">
             <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4 tracking-tight">
@@ -447,9 +445,7 @@ include 'includes/header.php';
 
     <section class="py-16 sm:py-24 bg-white relative w-full overflow-hidden" id="clients">
         
-        <div class="absolute inset-0 opacity-40 pointer-events-none" 
-             style="background-image: radial-gradient(#e5e7eb 2px, transparent 2px); background-size: 30px 30px;">
-        </div>
+        <div class="absolute inset-0 opacity-40 pointer-events-none bb-dot-grid-gray"></div>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             
@@ -520,6 +516,24 @@ include 'includes/header.php';
                 </div>
             </div>
 
+        </div>
+    </section>
+
+    <section class="py-16 sm:py-24 bg-gray-50 relative w-full overflow-hidden" id="about-execution">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-4xl mx-auto text-center mb-10" data-aos="fade-up">
+                <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-[#173978] tracking-tight mb-4">
+                    <?php echo htmlspecialchars(t('index.seo_section_title')); ?>
+                </h2>
+                <p class="text-base sm:text-lg text-gray-600 leading-relaxed">
+                    <?php echo htmlspecialchars(t('index.seo_section_subtitle')); ?>
+                </p>
+            </div>
+            <div class="max-w-4xl mx-auto space-y-5 text-gray-600 text-sm sm:text-base leading-relaxed" data-aos="fade-up" data-aos-delay="100">
+                <p><?php echo htmlspecialchars(t('index.seo_section_p1')); ?></p>
+                <p><?php echo htmlspecialchars(t('index.seo_section_p2')); ?></p>
+                <p><?php echo htmlspecialchars(t('index.seo_section_p3')); ?></p>
+            </div>
         </div>
     </section>
 
@@ -650,7 +664,7 @@ include 'includes/header.php';
 
                         <form action="" method="POST" class="space-y-4" data-enquiry-form="1">
                             <?php enquiry_form_hidden_fields(); ?>
-                            <input type="text" name="website_check" style="display:none !important;" tabindex="-1" autocomplete="off">
+                            <input type="text" name="website_check" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <input type="text" name="name" placeholder="<?php echo htmlspecialchars(t('index.form_name')); ?>" class="w-full px-4 py-3 text-sm sm:text-base rounded-lg border-0 focus:ring-2 focus:ring-[#173978] outline-none" required>

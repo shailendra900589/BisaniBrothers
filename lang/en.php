@@ -98,7 +98,7 @@ return [
     'index' => [
         'hero_line1'  => 'Your Sales & Growth',
         'hero_line2'  => 'Business Solutions Partner',
-        'hero_desc'   => 'We provide the strategy and tools to scale your business.',
+        'hero_desc'   => 'Empowering businesses with smart, scalable strategies and the tools to scale your business.',
         'cta_growth'  => 'Connect for Growth',
         'cta_services'=> 'Our Services',
         'stat_years'  => 'Years Experience',
@@ -108,7 +108,7 @@ return [
         'success_title'=> 'Message Sent!',
         'success_desc' => 'We have received your enquiry and will contact you shortly.',
         'services_title' => 'Our Services',
-        'services_desc'  => 'End-to-end solutions designed for scale, impact, and operational excellence.',
+        'services_desc'  => 'End-to-end scalable solutions designed for growing businesses — built for scale, impact, and operational excellence.',
         'services_cta'   => 'Explore Service',
         'testimonials_title' => 'What Our Clients Say',
         'contact_title'  => 'Connect With Us',
@@ -122,7 +122,7 @@ return [
         'lending_desc'   => 'We support lending operations with trained teams and process-driven customer engagement, helping improve follow-ups, repayments, and overall collection efficiency.',
         'ev_desc'        => 'We support EV infrastructure companies with location identification, partner onboarding, field verification, and rollout coordination to enable faster and efficient expansion of charging networks across markets.',
         'industries_title' => 'Industries We Serve',
-        'industries_desc'  => 'Empowering diverse sectors with tailored on-ground and digital solutions.',
+        'industries_desc'  => 'Empowering diverse businesses with smart, scalable on-ground and digital solutions across FinTech, BFSI, education, agritech, and retail.',
         'industry_fintech' => 'FinTech',
         'industry_bfsi'    => 'BFSI',
         'industry_education' => 'Education',
@@ -158,6 +158,11 @@ return [
         'form_subject'       => 'Subject / City',
         'form_message'       => 'How can we help you?',
         'send_message'       => 'Send Message',
+        'seo_section_title'    => 'Empowering Businesses with Smart, Scalable Solutions',
+        'seo_section_subtitle' => 'FinTech, BFSI, Education, AgriTech & Retail — on-ground execution across India',
+        'seo_section_p1'       => 'Bisani Brothers partners with businesses that need reliable sales execution, staffing deployment, and market research at scale. From FinTech and BFSI to education, agritech, and retail, we help organisations expand faster with disciplined field teams, structured reporting, and measurable outcomes.',
+        'seo_section_p2'       => 'Our smart, scalable solutions cover merchant onboarding, lead generation, BTL and ATL activations, lending and collection support, and EV infrastructure rollout. Whether you are launching in new cities or strengthening last-mile coverage, we align with your business goals and deliver on-ground performance you can track.',
+        'seo_section_p3'       => 'Headquartered in Lucknow and serving clients nationwide, Bisani Brothers combines local market knowledge with process-driven execution. Businesses choose us for transparent operations, trained manpower, and a partnership model built for sustainable growth — not one-off campaigns.',
     ],
     'testimonials' => [
         [
@@ -181,8 +186,8 @@ return [
     ],
     'pages' => [
         'index' => [
-            'title' => 'Home | Bisani Brothers - Business Solutions',
-            'desc'  => 'Accelerate customer acquisition and sales targets with Bisani Brothers — India\'s partner for sales execution, staffing solutions, market research, and on-ground business growth.',
+            'title' => 'FinTech Sales & Growth Solutions | Bisani Brothers',
+            'desc'  => 'Empowering businesses with smart, scalable FinTech solutions. Bisani Brothers drives sales, growth, staffing, and on-ground business execution across India.',
         ],
         'about' => [
             'title' => 'About Us | Bisani Brothers',

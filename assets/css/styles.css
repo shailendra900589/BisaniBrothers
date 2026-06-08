@@ -250,3 +250,25 @@ body {
 .animate-float-infinite {
     animation: floating 4s ease-in-out infinite;
 }
+
+/* Homepage decorative dot grids (replaces inline styles) */
+.bb-dot-grid-white-fine {
+    background-image: radial-gradient(#ffffff 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+.bb-dot-grid-white {
+    background-image: radial-gradient(#ffffff 2px, transparent 2px);
+    background-size: 30px 30px;
+}
+
+.bb-dot-grid-gray {
+    background-image: radial-gradient(#e5e7eb 2px, transparent 2px);
+    background-size: 30px 30px;
+}
+
+/* Honeypot + tracking pixel helpers */
+.hp-field,
+.bb-pixel-hidden {
+    display: none !important;
+}
