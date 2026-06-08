@@ -218,6 +218,8 @@ return [
         'faq_sub' => 'Quick answers about this topic',
         'previous' => 'Previous',
         'next' => 'Next',
+        'pagination' => 'Blog pages',
+        'page_of' => 'Page {current} of {total}',
         'read_article' => 'Read Article',
         'all_category_posts' => 'All {category} posts',
         'more_from' => 'More from',

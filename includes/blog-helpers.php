@@ -298,13 +298,14 @@ function blog_fetch_by_slug(PDO $pdo, string $slug, ?string $locale = null): ?ar
         : $post;
 }
 
-/**
- * @return array<int, array<string, mixed>>
- */
-function blog_fetch_list(PDO $pdo, array $filters = []): array
+function blog_list_per_page(): int
 {
-    require_once __DIR__ . '/blog-translate.php';
-    $locale = locale_current();
+    return 9;
+}
+
+/** @return array{where: string, params: array<int, string>} */
+function blog_list_query_parts(PDO $pdo, array $filters): array
+{
     $where = [blog_sql_public_only()];
     $params = [];
 
@@ -331,17 +332,156 @@ function blog_fetch_list(PDO $pdo, array $filters = []): array
         $params[] = $slike;
     }
 
-    $sql = 'SELECT ' . blog_sql_columns($pdo, ['id', 'title', 'slug', 'image_path', 'category', 'created_at', 'meta_desc', 'meta_title', 'tags', 'keywords', 'faq_json'])
-        . ' FROM blogs WHERE ' . implode(' AND ', $where) . ' ORDER BY created_at DESC';
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $rows = blog_pick_locale_rows($stmt->fetchAll(PDO::FETCH_ASSOC), $locale);
+    return [
+        'where'  => implode(' AND ', $where),
+        'params' => $params,
+    ];
+}
 
-    if ($locale === LOCALE_DEFAULT) {
-        return $rows;
+/**
+ * @return array<int, array<string, mixed>>
+ */
+function blog_fetch_list(PDO $pdo, array $filters = []): array
+{
+    $result = blog_fetch_list_page($pdo, $filters, 1, 0);
+
+    return $result['posts'];
+}
+
+/**
+ * @return array{posts: array<int, array<string, mixed>>, pagination: array<string, int>}
+ */
+function blog_fetch_list_page(PDO $pdo, array $filters = [], int $page = 1, ?int $perPage = null): array
+{
+    require_once __DIR__ . '/blog-translate.php';
+    $locale = locale_current();
+    $perPage = $perPage ?? blog_list_per_page();
+    $page = max(1, $page);
+
+    $parts = blog_list_query_parts($pdo, $filters);
+    $sql = 'SELECT ' . blog_sql_columns($pdo, ['id', 'title', 'slug', 'image_path', 'category', 'created_at', 'meta_desc', 'meta_title', 'tags', 'keywords', 'faq_json'])
+        . ' FROM blogs WHERE ' . $parts['where'] . ' ORDER BY created_at DESC';
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($parts['params']);
+    $allRows = blog_pick_locale_rows($stmt->fetchAll(PDO::FETCH_ASSOC), $locale);
+
+    $total = count($allRows);
+    $totalPages = $total > 0 ? (int) ceil($total / $perPage) : 1;
+    if ($page > $totalPages) {
+        $page = $totalPages;
     }
 
-    return blog_localize_posts_for_web($rows, $locale, 'summary');
+    $offset = ($page - 1) * $perPage;
+    $rows = $perPage > 0 ? array_slice($allRows, $offset, $perPage) : $allRows;
+
+    if ($locale !== LOCALE_DEFAULT) {
+        $rows = blog_localize_posts_for_web($rows, $locale, 'summary');
+    }
+
+    $shown = count($rows);
+
+    return [
+        'posts' => $rows,
+        'pagination' => [
+            'page'        => $page,
+            'per_page'    => $perPage,
+            'total'       => $total,
+            'total_pages' => $totalPages,
+            'from'        => $total > 0 ? $offset + 1 : 0,
+            'to'          => $total > 0 ? $offset + $shown : 0,
+        ],
+    ];
+}
+
+function blog_list_page_url(int $page, array $filters = []): string
+{
+    require_once __DIR__ . '/locale.php';
+    $params = [];
+    if (!empty($filters['category'])) {
+        $params['category'] = $filters['category'];
+    }
+    if (!empty($filters['tag'])) {
+        $params['tag'] = $filters['tag'];
+    }
+    if (!empty($filters['search'])) {
+        $params['search'] = $filters['search'];
+    }
+    if ($page > 1) {
+        $params['page'] = $page;
+    }
+
+    $path = $params === [] ? 'blog' : 'blog?' . http_build_query($params);
+
+    return locale_url($path);
+}
+
+function blog_render_list_pagination(array $pagination, array $filters = []): string
+{
+    $totalPages = (int) ($pagination['total_pages'] ?? 1);
+    if ($totalPages <= 1) {
+        return '';
+    }
+
+    $current = (int) ($pagination['page'] ?? 1);
+    $prevLabel = blog_page_t('previous', 'Previous');
+    $nextLabel = blog_page_t('next', 'Next');
+    $pageLabel = blog_page_t_vars('page_of', [
+        'current' => (string) $current,
+        'total'   => (string) $totalPages,
+    ], 'Page {current} of {total}');
+
+    $html = '<nav class="blog-pagination" aria-label="' . blog_esc_attr(blog_page_t('pagination', 'Blog pages')) . '">';
+    $html .= '<p class="blog-pagination-meta">' . htmlspecialchars($pageLabel) . '</p>';
+    $html .= '<ul class="blog-pagination-list">';
+
+    if ($current > 1) {
+        $html .= '<li><a class="blog-pagination-btn blog-pagination-btn--arrow" href="'
+            . blog_esc_attr(blog_list_page_url($current - 1, $filters)) . '" rel="prev" aria-label="'
+            . blog_esc_attr($prevLabel) . '"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i><span>'
+            . htmlspecialchars($prevLabel) . '</span></a></li>';
+    } else {
+        $html .= '<li><span class="blog-pagination-btn blog-pagination-btn--arrow is-disabled" aria-disabled="true"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i><span>'
+            . htmlspecialchars($prevLabel) . '</span></span></li>';
+    }
+
+    $start = max(1, $current - 2);
+    $end = min($totalPages, $current + 2);
+
+    if ($start > 1) {
+        $html .= '<li><a class="blog-pagination-num" href="' . blog_esc_attr(blog_list_page_url(1, $filters)) . '">1</a></li>';
+        if ($start > 2) {
+            $html .= '<li><span class="blog-pagination-ellipsis" aria-hidden="true">…</span></li>';
+        }
+    }
+
+    for ($p = $start; $p <= $end; $p++) {
+        if ($p === $current) {
+            $html .= '<li><span class="blog-pagination-num is-active" aria-current="page">' . $p . '</span></li>';
+        } else {
+            $html .= '<li><a class="blog-pagination-num" href="' . blog_esc_attr(blog_list_page_url($p, $filters)) . '">' . $p . '</a></li>';
+        }
+    }
+
+    if ($end < $totalPages) {
+        if ($end < $totalPages - 1) {
+            $html .= '<li><span class="blog-pagination-ellipsis" aria-hidden="true">…</span></li>';
+        }
+        $html .= '<li><a class="blog-pagination-num" href="' . blog_esc_attr(blog_list_page_url($totalPages, $filters)) . '">' . $totalPages . '</a></li>';
+    }
+
+    if ($current < $totalPages) {
+        $html .= '<li><a class="blog-pagination-btn blog-pagination-btn--arrow" href="'
+            . blog_esc_attr(blog_list_page_url($current + 1, $filters)) . '" rel="next" aria-label="'
+            . blog_esc_attr($nextLabel) . '"><span>' . htmlspecialchars($nextLabel)
+            . '</span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a></li>';
+    } else {
+        $html .= '<li><span class="blog-pagination-btn blog-pagination-btn--arrow is-disabled" aria-disabled="true"><span>'
+            . htmlspecialchars($nextLabel) . '</span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></span></li>';
+    }
+
+    $html .= '</ul></nav>';
+
+    return $html;
 }
 
 function blog_fetch_linkable_posts(PDO $pdo): array

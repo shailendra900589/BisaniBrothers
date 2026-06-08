@@ -22,11 +22,15 @@ if ($filterSearch !== '') {
     $pageDesc = "Browse blog posts tagged with " . $filterTag . " from Bisani Brothers.";
 }
 
-$posts = blog_fetch_list($pdo, array_filter([
+$listFilters = array_filter([
     'category' => $filterCategory !== '' ? $filterCategory : null,
     'tag'      => $filterTag !== '' ? $filterTag : null,
     'search'   => $filterSearch !== '' ? $filterSearch : null,
-]));
+]);
+$currentPage = isset($_GET['page']) ? max(1, (int) $_GET['page']) : 1;
+$listResult = blog_fetch_list_page($pdo, $listFilters, $currentPage);
+$posts = $listResult['posts'];
+$pagination = $listResult['pagination'];
 
 include 'includes/header.php';
 ?>
@@ -131,6 +135,8 @@ include 'includes/header.php';
             }
             ?>
         </div>
+
+        <?php echo blog_render_list_pagination($pagination, $listFilters); ?>
     </div>
 </section>
 

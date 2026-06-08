@@ -63,6 +63,56 @@ function locale_detect_from_path(?string $path = null): ?string
     return null;
 }
 
+function locale_detect_from_cookie(): ?string
+{
+    if (empty($_COOKIE[LOCALE_COOKIE])) {
+        return null;
+    }
+    $code = strtolower(trim((string) $_COOKIE[LOCALE_COOKIE]));
+
+    return locale_is_valid($code) ? $code : null;
+}
+
+function locale_detect_from_accept_language(): ?string
+{
+    $header = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
+    if ($header === '') {
+        return null;
+    }
+
+    $entries = [];
+    foreach (explode(',', $header) as $part) {
+        $part = trim($part);
+        if ($part === '') {
+            continue;
+        }
+        $q = 1.0;
+        $langTag = $part;
+        if (str_contains($part, ';')) {
+            [$langTag, $qPart] = array_map('trim', explode(';', $part, 2));
+            if (preg_match('/q=([\d.]+)/i', $qPart, $qm)) {
+                $q = (float) $qm[1];
+            }
+        }
+        $entries[] = ['tag' => strtolower($langTag), 'q' => $q];
+    }
+
+    usort($entries, static fn(array $a, array $b): int => $b['q'] <=> $a['q']);
+
+    foreach ($entries as $entry) {
+        $tag = $entry['tag'];
+        if (locale_is_valid($tag)) {
+            return $tag;
+        }
+        $primary = explode('-', $tag, 2)[0];
+        if ($primary !== LOCALE_DEFAULT && locale_is_valid($primary)) {
+            return $primary;
+        }
+    }
+
+    return null;
+}
+
 function locale_detect(): string
 {
     if (isset($_GET['lang'])) {
@@ -78,6 +128,16 @@ function locale_detect(): string
     $fromPath = locale_detect_from_path();
     if ($fromPath !== null) {
         return $fromPath;
+    }
+
+    $fromCookie = locale_detect_from_cookie();
+    if ($fromCookie !== null) {
+        return $fromCookie;
+    }
+
+    $fromBrowser = locale_detect_from_accept_language();
+    if ($fromBrowser !== null) {
+        return $fromBrowser;
     }
 
     return LOCALE_DEFAULT;
