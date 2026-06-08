@@ -167,7 +167,7 @@ $navbar_height = "h-16";
   gtag('set', 'user_properties', { site_language: '<?php echo locale_current(); ?>' });
 </script>
 
-<?php if (meta_pixel_active()): ?>
+<?php if (meta_pixel_active() && !in_array($scriptName, ['blog', 'blog-details'], true)): ?>
     <script async src="<?php echo seo_escape(meta_pixel_script_url($base_url)); ?>"></script>
 <?php endif; ?>
 	

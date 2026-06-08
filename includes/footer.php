@@ -479,5 +479,28 @@ html.locale-switching { cursor: progress; }
 html.locale-switching body { opacity: 0.92; transition: opacity 0.15s ease; }
 </style>
 
+<?php
+require_once __DIR__ . '/meta-pixel.php';
+$footerScript = $scriptName ?? basename($_SERVER['SCRIPT_NAME'] ?? '', '.php');
+if (meta_pixel_active() && in_array($footerScript, ['blog', 'blog-details'], true)):
+    $pixelScript = meta_pixel_script_url($base_url ?? '');
+?>
+<script>
+(function () {
+    function loadPixel() {
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = <?php echo json_encode($pixelScript, JSON_UNESCAPED_SLASHES); ?>;
+        document.head.appendChild(s);
+    }
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(loadPixel, { timeout: 3000 });
+    } else {
+        window.addEventListener('load', function () { setTimeout(loadPixel, 100); }, { once: true });
+    }
+})();
+</script>
+<?php endif; ?>
+
 </body>
 </html>

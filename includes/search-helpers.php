@@ -62,7 +62,7 @@ function search_site(PDO $pdo, string $query, int $limit = 30): array
         $stmt->execute([$like, $like, $like, $like, $like]);
         $blogRows = blog_pick_locale_rows($stmt->fetchAll(PDO::FETCH_ASSOC), $locale);
         if ($locale !== LOCALE_DEFAULT) {
-            $blogRows = blog_localize_posts($blogRows, $locale, 'summary');
+            $blogRows = blog_localize_posts_cached_only($blogRows, $locale, 'summary');
         }
         foreach (array_slice($blogRows, 0, 15) as $row) {
             $results[] = [

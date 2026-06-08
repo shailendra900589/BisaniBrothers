@@ -2,7 +2,7 @@
 
 /**
  * Auto-translate English blog posts into the active locale (cached on disk).
- * Web requests: use cache; on miss translate once and save (no 500 timeouts).
+ * Web requests: disk cache only (fast). Run scripts/warm-blog-translations.php via CLI to build caches.
  */
 
 function blog_translate_cache_dir(): string
@@ -29,23 +29,29 @@ function blog_translate_runtime_enabled(): bool
 
 function blog_translate_is_active(): bool
 {
-    if (!blog_translate_runtime_enabled()) {
-        return !empty($GLOBALS['_blog_translate_miss']);
-    }
-
-    return true;
+    return blog_translate_runtime_enabled();
 }
 
-function blog_translate_source_hash(array $post): string
+function blog_translate_source_hash(array $post, string $depth = 'full'): string
 {
-    $parts = [
-        $post['title'] ?? '',
-        $post['content'] ?? '',
-        $post['meta_title'] ?? '',
-        $post['meta_desc'] ?? '',
-        $post['faq_json'] ?? '',
-        $post['updated_at'] ?? $post['created_at'] ?? '',
-    ];
+    if ($depth === 'full') {
+        $parts = [
+            $post['title'] ?? '',
+            $post['content'] ?? '',
+            $post['meta_title'] ?? '',
+            $post['meta_desc'] ?? '',
+            $post['faq_json'] ?? '',
+            $post['updated_at'] ?? $post['created_at'] ?? '',
+        ];
+    } else {
+        $parts = [
+            $post['title'] ?? '',
+            $post['meta_title'] ?? '',
+            $post['meta_desc'] ?? '',
+            $post['faq_json'] ?? '',
+            $post['updated_at'] ?? $post['created_at'] ?? '',
+        ];
+    }
 
     return md5(implode("\x1e", $parts));
 }
@@ -120,7 +126,7 @@ function blog_translate_google(string $text, string $targetLang): string
 
     $ctx = stream_context_create([
         'http' => [
-            'timeout' => 25,
+            'timeout' => 12,
             'header'  => "User-Agent: Mozilla/5.0\r\n",
         ],
     ]);
@@ -259,7 +265,8 @@ function blog_build_localized_fields(array $post, string $locale, string $depth)
     ];
 
     if ($depth === 'full') {
-        $fields['content'] = blog_translate_html((string) ($post['content'] ?? ''), $locale);
+        // Chunked whole-document translation — far fewer API calls than per-element blog_translate_html().
+        $fields['content'] = blog_translate_text((string) ($post['content'] ?? ''), $locale);
 
         if (!empty($post['faq_json'])) {
             require_once __DIR__ . '/blog-helpers.php';
@@ -282,7 +289,7 @@ function blog_build_localized_fields(array $post, string $locale, string $depth)
     return $fields;
 }
 
-function blog_localize_post(array $post, ?string $locale = null, string $depth = 'full'): array
+function blog_localize_post(array $post, ?string $locale = null, string $depth = 'full', bool $allowLiveTranslate = true): array
 {
     require_once __DIR__ . '/locale.php';
     $locale = $locale ?? locale_current();
@@ -299,13 +306,16 @@ function blog_localize_post(array $post, ?string $locale = null, string $depth =
 
     $cacheKey = $depth === 'full' ? 'full' : 'summary';
     $localeKey = $locale . '-' . $cacheKey;
-    $sourceHash = blog_translate_source_hash($post) . '|' . $cacheKey;
+    $sourceHash = blog_translate_source_hash($post, $depth) . '|' . $cacheKey;
     $cached = blog_translate_cache_get($blogId, $localeKey, $sourceHash);
     if ($cached !== null) {
         return array_merge($post, $cached, ['_auto_translated' => true]);
     }
 
-    $GLOBALS['_blog_translate_miss'] = true;
+    if (!$allowLiveTranslate || !blog_translate_runtime_enabled()) {
+        return $post;
+    }
+
     if (function_exists('set_time_limit')) {
         @set_time_limit($depth === 'full' ? 180 : 90);
     }
@@ -319,17 +329,26 @@ function blog_localize_post(array $post, ?string $locale = null, string $depth =
         error_log('Blog translate failed for #' . $blogId . ' [' . $locale . ']: ' . $e->getMessage());
 
         return $post;
-    } finally {
-        $GLOBALS['_blog_translate_miss'] = false;
     }
 }
 
-function blog_localize_posts(array $posts, ?string $locale = null, string $depth = 'full'): array
+/** Use disk cache only — never block the request with live Google Translate. */
+function blog_localize_post_cached_only(array $post, ?string $locale = null, string $depth = 'summary'): array
+{
+    return blog_localize_post($post, $locale, $depth, false);
+}
+
+function blog_localize_posts(array $posts, ?string $locale = null, string $depth = 'full', bool $allowLiveTranslate = true): array
 {
     $out = [];
     foreach ($posts as $post) {
-        $out[] = blog_localize_post($post, $locale, $depth);
+        $out[] = blog_localize_post($post, $locale, $depth, $allowLiveTranslate);
     }
 
     return $out;
+}
+
+function blog_localize_posts_cached_only(array $posts, ?string $locale = null, string $depth = 'summary'): array
+{
+    return blog_localize_posts($posts, $locale, $depth, false);
 }

@@ -7,7 +7,11 @@ require_once 'includes/blog-helpers.php';
 
 $post = null;
 if (isset($_GET['slug'])) {
-    $post = blog_fetch_by_slug($pdo, $_GET['slug']);
+    $slug = trim(urldecode((string) $_GET['slug']));
+    if ($slug !== '' && str_contains($slug, ' ')) {
+        $slug = blog_normalize_slug($slug);
+    }
+    $post = blog_fetch_by_slug($pdo, $slug);
 }
 
 if (!$post) {
