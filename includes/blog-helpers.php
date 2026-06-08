@@ -738,12 +738,42 @@ function blog_translate_category(string $category, ?string $locale = null): stri
     if (isset($cache[$key])) {
         return $cache[$key];
     }
-    if (!blog_translate_runtime_enabled()) {
-        $cache[$key] = $category;
-        return $category;
+
+    $file = blog_translate_cache_dir() . '/categories-' . preg_replace('/[^a-z0-9_-]/i', '', $locale) . '.json';
+    if (is_file($file)) {
+        $map = json_decode((string) file_get_contents($file), true);
+        if (is_array($map)) {
+            $lookup = $map[strtolower($category)] ?? null;
+            if (is_string($lookup) && $lookup !== '') {
+                $cache[$key] = $lookup;
+                return $lookup;
+            }
+        }
     }
-    $cache[$key] = blog_translate_text($category, $locale);
-    return $cache[$key];
+
+    if (blog_translate_runtime_enabled()) {
+        $translated = blog_translate_text($category, $locale);
+        blog_translate_category_cache_store($locale, $category, $translated);
+        $cache[$key] = $translated;
+        return $translated;
+    }
+
+    $cache[$key] = $category;
+    return $category;
+}
+
+function blog_translate_category_cache_store(string $locale, string $category, string $translated): void
+{
+    $file = blog_translate_cache_dir() . '/categories-' . preg_replace('/[^a-z0-9_-]/i', '', $locale) . '.json';
+    $map = [];
+    if (is_file($file)) {
+        $decoded = json_decode((string) file_get_contents($file), true);
+        if (is_array($decoded)) {
+            $map = $decoded;
+        }
+    }
+    $map[strtolower($category)] = $translated;
+    @file_put_contents($file, json_encode($map, JSON_UNESCAPED_UNICODE), LOCK_EX);
 }
 
 function blog_esc_attr(string $text): string

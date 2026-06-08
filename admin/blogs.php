@@ -160,6 +160,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($oldSlug && $oldSlug !== $savedSlug) {
             seo_ping_after_blog_change($pdo, $oldSlug, (bool) $is_orphan);
         }
+
+        if (is_array($edit_data) && !empty($edit_data['id'])) {
+            require_once '../includes/blog-translate.php';
+            $warmPost = $edit_data;
+            register_shutdown_function(static function () use ($warmPost): void {
+                if (function_exists('fastcgi_finish_request')) {
+                    @fastcgi_finish_request();
+                } elseif (function_exists('litespeed_finish_request')) {
+                    @litespeed_finish_request();
+                }
+                blog_warm_post_locales($warmPost);
+            });
+        }
     } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $edit_data = array_merge($edit_data ?? [], [
             'id'          => $id,

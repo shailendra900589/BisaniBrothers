@@ -20,8 +20,10 @@ fi
 chmod 755 storage storage/mail-outbox uploads uploads/resumes 2>/dev/null || true
 
 if command -v php >/dev/null 2>&1; then
-  php scripts/warm-locale-cache.php 2>/dev/null || true
-  php scripts/warm-blog-translations.php 2>/dev/null || true
+  echo "==> Warming locale strings..."
+  php scripts/warm-locale-cache.php || echo "WARN: warm-locale-cache failed"
+  echo "==> Warming blog translations (all locales)..."
+  php scripts/warm-blog-translations.php || echo "WARN: warm-blog-translations failed — run manually on server"
 fi
 
 echo "==> Deploy complete. Run migrations manually if needed:"
