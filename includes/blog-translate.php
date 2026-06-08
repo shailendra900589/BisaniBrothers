@@ -27,10 +27,26 @@ function blog_is_web_blog_page(): bool
 
         return false;
     }
+    if (defined('BISANI_BLOG_PAGE') && BISANI_BLOG_PAGE) {
+        $result = true;
+
+        return true;
+    }
     $script = basename($_SERVER['SCRIPT_NAME'] ?? '', '.php');
     $result = in_array($script, ['blog', 'blog-details'], true);
 
     return $result;
+}
+
+function blog_google_target_lang(string $locale): string
+{
+    require_once __DIR__ . '/locale.php';
+    if (!locale_is_valid($locale) || $locale === LOCALE_DEFAULT) {
+        return LOCALE_DEFAULT;
+    }
+    $meta = LOCALE_META[$locale] ?? [];
+
+    return (string) ($meta['google_tl'] ?? $locale);
 }
 
 function blog_translate_runtime_enabled(): bool
@@ -85,7 +101,7 @@ function blog_translate_source_hash(array $post, string $depth = 'full'): string
             $post['meta_title'] ?? '',
             $post['meta_desc'] ?? '',
             $post['faq_json'] ?? '',
-            $post['updated_at'] ?? $post['created_at'] ?? '',
+            $post['created_at'] ?? '',
         ];
     } else {
         $parts = [
@@ -93,7 +109,7 @@ function blog_translate_source_hash(array $post, string $depth = 'full'): string
             $post['meta_title'] ?? '',
             $post['meta_desc'] ?? '',
             $post['faq_json'] ?? '',
-            $post['updated_at'] ?? $post['created_at'] ?? '',
+            $post['created_at'] ?? '',
         ];
     }
 
@@ -178,8 +194,47 @@ function blog_translate_cache_clear(?int $blogId = null): void
     }
 }
 
+function blog_http_get(string $url): ?string
+{
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CONNECTTIMEOUT => 8,
+            CURLOPT_TIMEOUT        => 20,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_USERAGENT      => 'Mozilla/5.0 (compatible; BisaniBrothers/1.0)',
+            CURLOPT_SSL_VERIFYPEER => true,
+        ]);
+        $body = curl_exec($ch);
+        $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        if (PHP_VERSION_ID >= 80000) {
+            curl_close($ch);
+        } else {
+            @curl_close($ch);
+        }
+        if (is_string($body) && $body !== '' && $code >= 200 && $code < 300) {
+            return $body;
+        }
+    }
+
+    $ctx = stream_context_create([
+        'http' => [
+            'timeout' => 20,
+            'header'  => "User-Agent: Mozilla/5.0 (compatible; BisaniBrothers/1.0)\r\n",
+        ],
+        'ssl' => [
+            'verify_peer'      => true,
+            'verify_peer_name' => true,
+        ],
+    ]);
+    $body = @file_get_contents($url, false, $ctx);
+
+    return is_string($body) && $body !== '' ? $body : null;
+}
+
 /**
- * Free Google Translate (no API key) — used for all blog auto-translation.
+ * Free Google Translate (no API key) — all blog content is translated through this API.
  * @see https://translate.googleapis.com/translate_a/single
  */
 function blog_translate_google(string $text, string $targetLang): string
@@ -192,35 +247,42 @@ function blog_translate_google(string $text, string $targetLang): string
         return $text;
     }
 
+    require_once __DIR__ . '/locale.php';
+    $googleLang = blog_google_target_lang($targetLang);
+    if ($googleLang === '' || $googleLang === LOCALE_DEFAULT) {
+        return $text;
+    }
+
     $url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl='
-        . rawurlencode($targetLang)
+        . rawurlencode($googleLang)
         . '&dt=t&q=' . rawurlencode($text);
 
-    $ctx = stream_context_create([
-        'http' => [
-            'timeout' => 15,
-            'header'  => "User-Agent: Mozilla/5.0\r\n",
-        ],
-    ]);
+    for ($attempt = 0; $attempt < 2; $attempt++) {
+        $json = blog_http_get($url);
+        if ($json === null) {
+            usleep(200000);
+            continue;
+        }
 
-    $json = @file_get_contents($url, false, $ctx);
-    if ($json === false) {
-        return $text;
-    }
+        $data = json_decode($json, true);
+        if (!isset($data[0]) || !is_array($data[0])) {
+            continue;
+        }
 
-    $data = json_decode($json, true);
-    if (!isset($data[0]) || !is_array($data[0])) {
-        return $text;
-    }
+        $parts = [];
+        foreach ($data[0] as $chunk) {
+            if (isset($chunk[0]) && is_string($chunk[0])) {
+                $parts[] = $chunk[0];
+            }
+        }
 
-    $parts = [];
-    foreach ($data[0] as $chunk) {
-        if (isset($chunk[0]) && is_string($chunk[0])) {
-            $parts[] = $chunk[0];
+        $translated = $parts !== [] ? implode('', $parts) : '';
+        if ($translated !== '' && $translated !== $text) {
+            return $translated;
         }
     }
 
-    return $parts !== [] ? implode('', $parts) : $text;
+    return $text;
 }
 
 function blog_translate_text(string $text, string $targetLang): string
@@ -496,7 +558,7 @@ function blog_localize_post(array $post, ?string $locale = null, string $depth =
                 return array_merge($post, $cached, ['_auto_translated' => true]);
             }
         }
-    } else {
+    } elseif (!blog_is_web_blog_page()) {
         blog_queue_warm_job($blogId, $locale, $depth);
     }
 

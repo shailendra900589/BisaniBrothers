@@ -1,5 +1,6 @@
 <?php
-@set_time_limit(120);
+define('BISANI_BLOG_PAGE', true);
+@set_time_limit(180);
 require 'db.php';
 require_once 'includes/blog-helpers.php';
 

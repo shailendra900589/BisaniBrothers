@@ -1,4 +1,5 @@
 <?php
+define('BISANI_BLOG_PAGE', true);
 require 'db.php';
 require_once 'includes/seo.php';
 require_once 'includes/blog-helpers.php';
@@ -96,8 +97,6 @@ if ($faqSchema = blog_faq_schema($faqItems, $articleUrl)) {
 $shareUrl = urlencode($articleUrl);
 $shareTitle = urlencode($post['title']);
 $leadText = trim($metaDesc !== '' ? $metaDesc : '');
-$blogNeedsTranslationReload = locale_current() !== LOCALE_DEFAULT && empty($post['_auto_translated']);
-
 include 'includes/header.php';
 ?>
 
