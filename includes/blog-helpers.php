@@ -353,7 +353,7 @@ function blog_fetch_linkable_posts(PDO $pdo): array
         . blog_sql_public_only() . $localeSql . ' ORDER BY created_at DESC LIMIT 80';
     $rows = blog_pick_locale_rows($pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC), $locale);
     if ($locale !== LOCALE_DEFAULT) {
-        $rows = blog_localize_posts_for_web($rows, $locale, 'summary');
+        $rows = blog_localize_posts_cached_only($rows, $locale, 'summary');
     }
 
     return array_map(static fn(array $row): array => [

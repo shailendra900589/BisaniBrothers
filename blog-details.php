@@ -30,6 +30,7 @@ if (!$post) {
 }
 
 $isOrphanPost = blog_is_orphan($post);
+$GLOBALS['_blog_main_post_id'] = (int) $post['id'];
 
 if (!$isOrphanPost) {
     $relatedPosts = blog_fetch_related($pdo, (int) $post['id'], $post['category'] ?? '', 3);
