@@ -15,12 +15,24 @@ Options -Indexes
 </IfModule>
 
 # Block sensitive config, dumps, and env files
-<FilesMatch "^(db\.php|db\.local\.php|\.env|\.gitignore)$">
-    Require all denied
-</FilesMatch>
-<FilesMatch "\.(sql|bak|log|env|local\.php)$">
-    Require all denied
-</FilesMatch>
+<IfModule mod_authz_core.c>
+    <FilesMatch "^(db\.php|db\.local\.php|\.env|\.gitignore)$">
+        Require all denied
+    </FilesMatch>
+    <FilesMatch "\.(sql|bak|log|env|local\.php)$">
+        Require all denied
+    </FilesMatch>
+</IfModule>
+<IfModule !mod_authz_core.c>
+    <FilesMatch "^(db\.php|db\.local\.php|\.env|\.gitignore)$">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+    <FilesMatch "\.(sql|bak|log|env|local\.php)$">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+</IfModule>
 
 # 2. ENABLE REWRITE ENGINE
 RewriteEngine On

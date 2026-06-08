@@ -14,9 +14,11 @@ $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "
 $host = $_SERVER['HTTP_HOST'];
 
 // 1. Auto-detect project folder (works on local XAMPP subfolder and live root)
-$project_root = str_replace('\\', '/', realpath(dirname(__DIR__)));
-$doc_root = str_replace('\\', '/', realpath($_SERVER['DOCUMENT_ROOT']));
-$relative_path = substr($project_root, strlen($doc_root));
+$project_root = str_replace('\\', '/', realpath(dirname(__DIR__)) ?: dirname(__DIR__));
+$doc_root = str_replace('\\', '/', realpath($_SERVER['DOCUMENT_ROOT'] ?? '') ?: ($_SERVER['DOCUMENT_ROOT'] ?? ''));
+$relative_path = ($doc_root !== '' && str_starts_with($project_root, $doc_root))
+    ? substr($project_root, strlen($doc_root))
+    : '';
 $folder_path = ($relative_path === '' || $relative_path === '/') ? '/' : rtrim($relative_path, '/') . '/';
 
 // 2. Final Base URL

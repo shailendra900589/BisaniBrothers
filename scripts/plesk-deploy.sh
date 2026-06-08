@@ -6,7 +6,11 @@ cd "$(dirname "$0")/.."
 echo "==> Bisani Brothers deploy"
 
 if [ ! -f db.local.php ]; then
-  echo "WARNING: db.local.php missing — copy from db.local.example.php and set production DB credentials."
+  echo "ERROR: db.local.php missing in httpdocs."
+  echo "Create it from db.local.example.php with Plesk DB credentials:"
+  echo "  Database: bisanibrothers_2026"
+  echo "  User:     BisaniBrothers_2026"
+  exit 1
 fi
 
 if [ -d storage/mail-outbox ] && [ ! -f storage/mail-outbox/.gitkeep ]; then
