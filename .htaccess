@@ -1,0 +1,120 @@
+# ====================================================
+#  BISANI BROTHERS - LIVE SERVER .HTACCESS
+# ====================================================
+
+# 1. PREVENT DIRECTORY BROWSING
+Options -Indexes
+
+# Security headers (HTML/API responses)
+<IfModule mod_headers.c>
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+</IfModule>
+
+# Block sensitive config, dumps, and env files
+<FilesMatch "^(db\.php|db\.local\.php|\.env|\.gitignore)$">
+    Require all denied
+</FilesMatch>
+<FilesMatch "\.(sql|bak|log|env|local\.php)$">
+    Require all denied
+</FilesMatch>
+
+# 2. ENABLE REWRITE ENGINE
+RewriteEngine On
+
+# Block direct web access to internal folders and CLI-only reindex
+RewriteRule ^seo-reindex\.php$ - [F,L]
+
+# Block direct web access to internal folders
+RewriteRule ^(?:includes|scripts|storage|node_modules)/ - [F,L]
+RewriteRule ^assets/ckeditor/samples/ - [F,L]
+
+# RewriteBase auto-detected from .htaccess directory (works in subfolder + live root)
+
+# ----------------------------------------------------
+#  FIX: REMOVE DOUBLE SLASHES (production only)
+# ----------------------------------------------------
+RewriteCond %{HTTP_HOST} !^localhost(:\d+)?$ [NC]
+RewriteCond %{HTTP_HOST} !^127\.0\.0\.1(:\d+)?$ [NC]
+RewriteCond %{THE_REQUEST} \s//([^\s]*) [NC]
+RewriteRule ^ https://www.bisanibrothers.com/%1 [R=301,L]
+
+# ----------------------------------------------------
+#  FIX: FORCE WWW + HTTPS (production only)
+# ----------------------------------------------------
+RewriteCond %{HTTP_HOST} !^localhost(:\d+)?$ [NC]
+RewriteCond %{HTTP_HOST} !^127\.0\.0\.1(:\d+)?$ [NC]
+RewriteCond %{HTTP_HOST} !^www\. [NC]
+RewriteRule ^(.*)$ https://www.%{HTTP_HOST}/$1 [R=301,L]
+
+RewriteCond %{HTTP_HOST} !^localhost(:\d+)?$ [NC]
+RewriteCond %{HTTP_HOST} !^127\.0\.0\.1(:\d+)?$ [NC]
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+# ----------------------------------------------------
+#  SITEMAP, FEEDS & SEARCH DISCOVERY
+# ----------------------------------------------------
+RewriteRule ^sitemap\.xml$ sitemap.php [L]
+RewriteRule ^llms\.txt$ llms.php [L]
+RewriteRule ^rss\.xml$ rss.php [L]
+RewriteRule ^feed\.xml$ rss.php [L]
+RewriteRule ^opensearch\.xml$ opensearch.php [L]
+RewriteRule ^bb-analytics\.js$ bb-analytics.php [L]
+RewriteRule ^bb-beacon\.gif$ bb-beacon.php [L]
+
+# Locale URLs (before default English routes) — en uses root; others use /{code}/
+RewriteRule ^(hi|bn|mr|ta|te|gu|kn|ml|pa|or|ur)/?$ index.php?lang=$1 [L,QSA]
+RewriteRule ^(hi|bn|mr|ta|te|gu|kn|ml|pa|or|ur)/jobs/([^/]+)/?$ job-details.php?slug=$2&lang=$1 [L,QSA]
+RewriteRule ^(hi|bn|mr|ta|te|gu|kn|ml|pa|or|ur)/case-studies/([^/]+)/?$ case-study-details.php?slug=$2&lang=$1 [L,QSA]
+RewriteRule ^(hi|bn|mr|ta|te|gu|kn|ml|pa|or|ur)/industries/([^/]+)/?$ industry.php?slug=$2&lang=$1 [L,QSA]
+RewriteRule ^(hi|bn|mr|ta|te|gu|kn|ml|pa|or|ur)/(search|blog|about|contact|careers|faqs|case-studies|industries|privacy|terms|sales-growth|survey-market-research|staffing-solutions|btl-atl|lending-collection|ev-infrastructure|partner-with-us|growth-partner|why-work-with-us|jobs-index|orphan-index)/?$ $2.php?lang=$1 [L,QSA]
+RewriteRule ^(hi|bn|mr|ta|te|gu|kn|ml|pa|or|ur)/([^/]+)/?$ blog-details.php?slug=$2&lang=$1 [L,QSA]
+
+# Job detail pages (must be before blog slug catch-all)
+RewriteRule ^jobs/([^/]+)/?$ job-details.php?slug=$1 [L,QSA]
+
+# Case studies & industry pages
+RewriteRule ^case-studies/([^/]+)/?$ case-study-details.php?slug=$1 [L,QSA]
+RewriteRule ^industries/([^/]+)/?$ industry.php?slug=$1 [L,QSA]
+
+# ----------------------------------------------------
+#  SEO FIX: REDIRECT OLD BLOG URLs TO NEW CLEAN URLs
+#  (Changes /blog-details/slug to just /slug)
+# ----------------------------------------------------
+RewriteRule ^blog-details/([^/]+)/?$ $1 [R=301,L]
+
+# ====================================================
+#  GENERIC CLEAN URLs (REMOVE .PHP)
+# ====================================================
+
+# 1. If the request is for a real file/folder, serve it directly
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# 2. Redirect external .php requests to extensionless URL
+RewriteCond %{THE_REQUEST} \s/+(.+?)\.php[\s?] [NC]
+RewriteRule ^ %1 [R=301,L]
+
+# 3. Internally rewrite extensionless URL to .php file
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^(.+?)/?$ $1.php [L]
+
+# ====================================================
+#  DYNAMIC BLOG SLUG ROUTING (NEW)
+#  If it's not a folder, not a file, and not a .php page, 
+#  treat it as a blog slug!
+# ====================================================
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^([^/]+)/?$ blog-details.php?slug=$1 [L,QSA]
+
+# ====================================================
+#  ERROR HANDLING
+# ====================================================
+ErrorDocument 404 404.php

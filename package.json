@@ -1,0 +1,11 @@
+{
+  "name": "bisanibrothers-site",
+  "private": true,
+  "description": "Bisani Brothers website — pin CKEditor 4 OSS (do not upgrade to 4.23+ LTS without license)",
+  "devDependencies": {
+    "ckeditor4": "4.22.1"
+  },
+  "scripts": {
+    "sync-ckeditor": "node scripts/sync-ckeditor.js"
+  }
+}

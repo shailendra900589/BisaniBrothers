@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+
+Disallow: /includes/
+Disallow: /admin/
+Disallow: /uploads/
+Disallow: /scripts/
+Disallow: /storage/
+Disallow: /seo-reindex.php
+Disallow: /bb-analytics.js
+Disallow: /bb-beacon.gif
+Disallow: /assets/ckeditor/samples/
+
+# Sitemaps & discovery feeds
+Sitemap: https://www.bisanibrothers.com/sitemap.xml
+# LLM context: https://www.bisanibrothers.com/llms.txt
+# RSS feed: https://www.bisanibrothers.com/rss.xml
+# OpenSearch: https://www.bisanibrothers.com/opensearch.xml
+# IndexNow key: https://www.bisanibrothers.com/bisanibrothers2026indexnow.txt

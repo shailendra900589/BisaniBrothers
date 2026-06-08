@@ -1,0 +1,27 @@
+# Dependencies (runtime uses assets/ckeditor after npm run sync-ckeditor)
+node_modules/
+package-lock.json
+
+# Local secrets & overrides
+includes/mail-config.local.php
+db.local.php
+
+# Generated / runtime
+storage/mail-outbox/*
+!storage/mail-outbox/.gitkeep
+lang/cache/**
+uploads/**
+!uploads/.htaccess
+
+# Database dumps (import manually; do not commit)
+bisanibrothers_2026.sql
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
+
+# Dev-only bootstrap (use admin/users.php instead)
+scripts/reset-admin-password.php

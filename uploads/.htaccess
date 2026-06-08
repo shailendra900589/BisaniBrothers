@@ -1,0 +1,8 @@
+# PREVENT PHP EXECUTION IN UPLOADS FOLDER
+# This stops hackers from uploading a .php virus and running it.
+<Files *.php>
+    deny from all
+</Files>
+
+# Disable Script Execution
+Options -ExecCGI
