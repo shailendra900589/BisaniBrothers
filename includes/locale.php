@@ -135,14 +135,22 @@ function locale_build_replacements(string $code, array $merged, array $enBase): 
         return [];
     }
 
-    $map = [];
-    locale_collect_string_pairs($enBase, $merged, $map);
-    $pageEn = locale_load_page_strings(LOCALE_DEFAULT);
-    $pageLoc = locale_load_page_strings($code);
-    locale_collect_string_pairs($pageEn, $pageLoc, $map);
-    locale_merge_overlay_replacements($code, $map);
+    require_once __DIR__ . '/locale-cache.php';
 
-    return $map;
+    return locale_cache_remember(
+        'replacements/' . $code,
+        locale_replacement_source_files($code),
+        static function () use ($code, $merged, $enBase): array {
+            $map = [];
+            locale_collect_string_pairs($enBase, $merged, $map);
+            $pageEn = locale_load_page_strings(LOCALE_DEFAULT);
+            $pageLoc = locale_load_page_strings($code);
+            locale_collect_string_pairs($pageEn, $pageLoc, $map);
+            locale_merge_overlay_replacements($code, $map);
+
+            return $map;
+        }
+    );
 }
 
 function locale_load_page_strings(string $code): array
@@ -413,7 +421,7 @@ function locale_render_switcher(): string
     $current = locale_current();
     ob_start();
     ?>
-    <div class="relative group locale-switcher shrink-0">
+    <div class="relative group locale-switcher shrink-0" data-locale-switcher>
         <button type="button" class="flex items-center gap-1 text-[10px] font-bold text-[#173978] border border-gray-200 rounded-full px-1.5 py-0.5 hover:border-[#2fcaf0] hover:bg-cyan-50 transition-all focus:outline-none leading-none" aria-haspopup="true" aria-label="<?php echo htmlspecialchars(t('nav.language', 'Language')); ?>">
             <i class="fa-solid fa-globe text-[#2fcaf0] text-[9px]"></i>
             <span><?php echo htmlspecialchars(locale_short_label($current)); ?></span>
@@ -422,7 +430,7 @@ function locale_render_switcher(): string
         <div class="absolute right-0 top-full pt-1.5 hidden group-hover:block group-focus-within:block z-[60] min-w-[8.5rem]">
             <div class="bg-white shadow-lg rounded-md border border-gray-100 py-0.5 overflow-hidden max-h-52 overflow-y-auto">
                 <?php foreach (LOCALE_SUPPORTED as $code): ?>
-                <a href="<?php echo htmlspecialchars(locale_switch_url($code)); ?>" class="block px-2.5 py-1.5 text-[11px] font-semibold whitespace-nowrap <?php echo $code === $current ? 'text-[#173978] bg-cyan-50' : 'text-gray-600 hover:bg-gray-50 hover:text-[#173978]'; ?> transition-colors" hreflang="<?php echo htmlspecialchars(locale_meta($code)['hreflang']); ?>" lang="<?php echo $code; ?>">
+                <a href="<?php echo htmlspecialchars(locale_switch_url($code)); ?>" class="locale-switch-link block px-2.5 py-1.5 text-[11px] font-semibold whitespace-nowrap <?php echo $code === $current ? 'text-[#173978] bg-cyan-50' : 'text-gray-600 hover:bg-gray-50 hover:text-[#173978]'; ?> transition-colors" hreflang="<?php echo htmlspecialchars(locale_meta($code)['hreflang']); ?>" lang="<?php echo $code; ?>" data-locale="<?php echo htmlspecialchars($code); ?>">
                     <?php echo htmlspecialchars(locale_label($code)); ?>
                     <?php if ($code === $current): ?><i class="fa-solid fa-check text-[#2fcaf0] ml-1 text-[9px]"></i><?php endif; ?>
                 </a>

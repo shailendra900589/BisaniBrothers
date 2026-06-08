@@ -419,13 +419,12 @@ if (isset($pdo)) {
     </div>
 </footer>
 
-<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-<script>
-    // Initialize Animate On Scroll
-    AOS.init({
-        duration: 800,
-        once: true,
-        offset: 100
+<script defer src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script defer>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (typeof AOS !== 'undefined') {
+            AOS.init({ duration: 800, once: true, offset: 100 });
+        }
     });
 
     // Mobile Menu Toggle Logic
@@ -456,7 +455,29 @@ if (isset($pdo)) {
                 });
         });
     })();
+
+    (function () {
+        var prefetched = new Set();
+        document.querySelectorAll('.locale-switch-link[href]').forEach(function (link) {
+            link.addEventListener('mouseenter', function () {
+                var href = link.getAttribute('href');
+                if (!href || prefetched.has(href)) return;
+                prefetched.add(href);
+                var hint = document.createElement('link');
+                hint.rel = 'prefetch';
+                hint.href = href;
+                document.head.appendChild(hint);
+            }, { passive: true });
+            link.addEventListener('click', function () {
+                document.documentElement.classList.add('locale-switching');
+            }, { passive: true });
+        });
+    })();
 </script>
+<style>
+html.locale-switching { cursor: progress; }
+html.locale-switching body { opacity: 0.92; transition: opacity 0.15s ease; }
+</style>
 
 </body>
 </html>

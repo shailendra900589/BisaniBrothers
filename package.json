@@ -3,9 +3,11 @@
   "private": true,
   "description": "Bisani Brothers website — pin CKEditor 4 OSS (do not upgrade to 4.23+ LTS without license)",
   "devDependencies": {
-    "ckeditor4": "4.22.1"
+    "ckeditor4": "4.22.1",
+    "tailwindcss": "^3.4.17"
   },
   "scripts": {
-    "sync-ckeditor": "node scripts/sync-ckeditor.js"
+    "sync-ckeditor": "node scripts/sync-ckeditor.js",
+    "build:css": "tailwindcss -i ./assets/css/tailwind-src.css -o ./assets/css/tailwind.css --minify"
   }
 }

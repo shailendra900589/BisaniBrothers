@@ -9,9 +9,6 @@ function locale_start_output_buffer(): void
     ob_start('locale_filter_output');
 }
 
-/**
- * When a page already called ob_start(), attach translation at shutdown.
- */
 function locale_wrap_existing_buffers(): void
 {
     static $registered = false;
@@ -32,8 +29,7 @@ function locale_wrap_existing_buffers(): void
         while (ob_get_level() > 0) {
             $chunks[] = ob_get_clean();
         }
-        $html = implode('', array_reverse($chunks));
-        echo locale_filter_output($html);
+        echo locale_filter_output(implode('', array_reverse($chunks)));
     });
 }
 
@@ -44,16 +40,31 @@ function locale_filter_output(string $html): string
     }
 
     $map = locale_get_replacement_map();
-    if (empty($map)) {
+    if ($map === []) {
         return $html;
     }
 
+    $protected = [];
+    $html = preg_replace_callback(
+        '/<(script|style|noscript|textarea|pre|code)\b[^>]*>.*?<\/\1>/is',
+        static function (array $matches) use (&$protected): string {
+            $token = '%%BBI18N' . count($protected) . '%%';
+            $protected[$token] = $matches[0];
+
+            return $token;
+        },
+        $html
+    ) ?? $html;
+
     uksort($map, static fn($a, $b) => strlen($b) <=> strlen($a));
-    return str_replace(array_keys($map), array_values($map), $html);
+    $html = str_replace(array_keys($map), array_values($map), $html);
+
+    return $protected !== [] ? strtr($html, $protected) : $html;
 }
 
 function locale_get_replacement_map(): array
 {
     locale_init();
+
     return $GLOBALS['_locale_replacements'] ?? [];
 }
