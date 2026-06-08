@@ -82,7 +82,7 @@ include 'includes/header.php';
                         <div class="blog-card-thumb-media">
                             <img src="<?php echo $img; ?>" alt="<?php echo htmlspecialchars($row['title']); ?>" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='assets/bg/Blog_page.webp';">
                         </div>
-                        <span class="blog-card-thumb-badge"><?php echo htmlspecialchars($row['category']); ?></span>
+                        <span class="blog-card-thumb-badge"><?php echo htmlspecialchars(blog_translate_category($row['category'])); ?></span>
                     </div>
                 </a>
 

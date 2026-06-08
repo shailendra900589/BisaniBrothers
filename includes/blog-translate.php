@@ -324,9 +324,31 @@ function blog_queue_warm_job(int $postId, string $locale, string $depth = 'full'
         $GLOBALS['_blog_warm_jobs'] = [];
     }
     $GLOBALS['_blog_warm_jobs']["{$postId}|{$locale}|{$depth}"] = [
+        'type'   => 'post',
         'id'     => $postId,
         'locale' => $locale,
         'depth'  => $depth,
+    ];
+}
+
+function blog_queue_category_warm(string $category, string $locale): void
+{
+    if (php_sapi_name() === 'cli') {
+        return;
+    }
+    require_once __DIR__ . '/locale.php';
+    $category = trim($category);
+    if ($category === '' || !locale_is_valid($locale) || $locale === LOCALE_DEFAULT) {
+        return;
+    }
+    if (!isset($GLOBALS['_blog_warm_jobs']) || !is_array($GLOBALS['_blog_warm_jobs'])) {
+        $GLOBALS['_blog_warm_jobs'] = [];
+    }
+    $key = 'cat|' . $locale . '|' . strtolower($category);
+    $GLOBALS['_blog_warm_jobs'][$key] = [
+        'type'     => 'category',
+        'category' => $category,
+        'locale'   => $locale,
     ];
 }
 

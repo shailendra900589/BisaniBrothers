@@ -27,10 +27,30 @@ if ($slug !== '' && preg_match('/\s/', $slug)) {
 }
 $locale = isset($_GET['locale']) ? strtolower(trim((string) $_GET['locale'])) : '';
 $depth = isset($_GET['depth']) && $_GET['depth'] === 'summary' ? 'summary' : 'full';
+$category = isset($_GET['category']) ? trim((string) $_GET['category']) : '';
 
 require_once __DIR__ . '/includes/locale.php';
 if (!locale_is_valid($locale) || $locale === LOCALE_DEFAULT) {
     blog_warm_api_json(['ok' => false, 'error' => 'invalid_locale'], 400);
+}
+
+if ($category !== '') {
+    $catFile = blog_translate_cache_dir() . '/categories-' . preg_replace('/[^a-z0-9_-]/i', '', $locale) . '.json';
+    $map = is_file($catFile) ? json_decode((string) file_get_contents($catFile), true) : null;
+    if (is_array($map) && !empty($map[strtolower($category)])) {
+        blog_warm_api_json(['ok' => true, 'cached' => true, 'type' => 'category', 'locale' => $locale]);
+    }
+
+    $translated = blog_translate_run_live(static fn(): string => blog_translate_text($category, $locale));
+    blog_translate_category_cache_store($locale, $category, $translated);
+    blog_warm_api_json([
+        'ok'       => true,
+        'cached'   => true,
+        'built'    => true,
+        'type'     => 'category',
+        'locale'   => $locale,
+        'category' => $category,
+    ]);
 }
 
 if ($postId <= 0 && $slug !== '') {

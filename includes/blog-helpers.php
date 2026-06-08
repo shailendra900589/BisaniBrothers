@@ -758,6 +758,7 @@ function blog_translate_category(string $category, ?string $locale = null): stri
         return $translated;
     }
 
+    blog_queue_category_warm($category, $locale);
     $cache[$key] = $category;
     return $category;
 }
