@@ -502,5 +502,7 @@ if (meta_pixel_active() && in_array($footerScript, ['blog', 'blog-details'], tru
 </script>
 <?php endif; ?>
 
+<?php include __DIR__ . '/blog-warm-client.php'; ?>
+
 </body>
 </html>

@@ -3,13 +3,18 @@ require 'db.php';
 require_once 'includes/seo.php';
 require_once 'includes/blog-helpers.php';
 
-@set_time_limit(180);
+@set_time_limit(60);
 
 $post = null;
 if (isset($_GET['slug'])) {
-    $slug = trim(urldecode((string) $_GET['slug']));
-    if ($slug !== '' && str_contains($slug, ' ')) {
-        $slug = blog_normalize_slug($slug);
+    $rawSlug = trim(urldecode((string) $_GET['slug']));
+    $slug = $rawSlug;
+    if ($rawSlug !== '' && preg_match('/\s/', $rawSlug)) {
+        $slug = blog_normalize_slug($rawSlug);
+        if ($slug !== '' && $slug !== $rawSlug) {
+            header('Location: ' . locale_url($slug), true, 301);
+            exit;
+        }
     }
     $post = blog_fetch_by_slug($pdo, $slug);
 }
@@ -91,6 +96,7 @@ if ($faqSchema = blog_faq_schema($faqItems, $articleUrl)) {
 $shareUrl = urlencode($articleUrl);
 $shareTitle = urlencode($post['title']);
 $leadText = trim($metaDesc !== '' ? $metaDesc : '');
+$blogNeedsTranslationReload = locale_current() !== LOCALE_DEFAULT && empty($post['_auto_translated']);
 
 include 'includes/header.php';
 ?>

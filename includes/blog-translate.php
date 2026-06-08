@@ -310,40 +310,30 @@ function blog_build_localized_fields(array $post, string $locale, string $depth)
     return $fields;
 }
 
-function blog_schedule_translation_warm(array $post, string $locale, string $depth): void
+/** Queue warm jobs for browser fetch (IIS has no fastcgi_finish_request — never warm in shutdown). */
+function blog_queue_warm_job(int $postId, string $locale, string $depth = 'full'): void
 {
-    if (php_sapi_name() === 'cli') {
+    if ($postId <= 0 || php_sapi_name() === 'cli') {
         return;
     }
-
-    $blogId = (int) ($post['id'] ?? 0);
-    if ($blogId <= 0) {
+    require_once __DIR__ . '/locale.php';
+    if (!locale_is_valid($locale) || $locale === LOCALE_DEFAULT) {
         return;
     }
-
-    static $jobs = [];
-    $jobs["{$blogId}|{$locale}|{$depth}"] = [$post, $locale, $depth];
-
-    static $registered = false;
-    if ($registered) {
-        return;
+    if (!isset($GLOBALS['_blog_warm_jobs']) || !is_array($GLOBALS['_blog_warm_jobs'])) {
+        $GLOBALS['_blog_warm_jobs'] = [];
     }
-    $registered = true;
+    $GLOBALS['_blog_warm_jobs']["{$postId}|{$locale}|{$depth}"] = [
+        'id'     => $postId,
+        'locale' => $locale,
+        'depth'  => $depth,
+    ];
+}
 
-    register_shutdown_function(static function () use (&$jobs): void {
-        if ($jobs === []) {
-            return;
-        }
-        if (function_exists('fastcgi_finish_request')) {
-            @fastcgi_finish_request();
-        } elseif (function_exists('litespeed_finish_request')) {
-            @litespeed_finish_request();
-        }
-
-        foreach ($jobs as [$post, $locale, $depth]) {
-            blog_warm_post_translation($post, $locale, $depth);
-        }
-    });
+/** @return array<int, array{id: int, locale: string, depth: string}> */
+function blog_get_warm_jobs(): array
+{
+    return array_values($GLOBALS['_blog_warm_jobs'] ?? []);
 }
 
 function blog_warm_post_translation(array $post, string $locale, string $depth = 'full'): bool
@@ -434,7 +424,7 @@ function blog_localize_post(array $post, ?string $locale = null, string $depth =
             }
         }
     } else {
-        blog_schedule_translation_warm($post, $locale, $depth);
+        blog_queue_warm_job($blogId, $locale, $depth);
     }
 
     return $post;

@@ -77,6 +77,7 @@ RewriteRule ^feed\.xml$ rss.php [L]
 RewriteRule ^opensearch\.xml$ opensearch.php [L]
 RewriteRule ^bb-analytics\.js$ bb-analytics.php [L]
 RewriteRule ^bb-beacon\.gif$ bb-beacon.php [L]
+RewriteRule ^bb-blog-warm$ bb-blog-warm.php [L,QSA]
 
 # Locale URLs (before default English routes) — en uses root; others use /{code}/
 RewriteRule ^(hi|bn|mr|ta|te|gu|kn|ml|pa|or|ur)/?$ index.php?lang=$1 [L,QSA]

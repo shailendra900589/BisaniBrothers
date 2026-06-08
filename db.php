@@ -30,7 +30,7 @@ if ($isLiveSite && is_file(__DIR__ . '/includes/db-live-config.php')) {
         $dbUser = $live['user'] ?? $dbUser;
         $dbPass = $live['pass'] ?? $dbPass;
     }
-} elseif ($isLocal && is_file($localConfig)) {
+} elseif ($isLocal && is_file($localConfig) && getenv('BISANI_DB_USER') === false) {
     require $localConfig;
 }
 
@@ -72,6 +72,22 @@ $pdoOptions = [
 
 function db_build_candidates(string $host, int $port, string $name, string $user, string $pass, string $charset): array
 {
+    $envUser = getenv('BISANI_DB_USER');
+    if ($envUser !== false && $envUser !== '') {
+        $envPass = getenv('BISANI_DB_PASS');
+        $envName = getenv('BISANI_DB_NAME');
+        $envHost = getenv('BISANI_DB_HOST');
+
+        return [[
+            'host'    => ($envHost !== false && $envHost !== '') ? $envHost : $host,
+            'port'    => $port,
+            'name'    => ($envName !== false && $envName !== '') ? $envName : $name,
+            'user'    => $envUser,
+            'pass'    => $envPass !== false ? $envPass : $pass,
+            'charset' => $charset,
+        ]];
+    }
+
     $hosts = array_unique(array_filter([
         $host,
         $host === 'localhost' ? '127.0.0.1' : null,

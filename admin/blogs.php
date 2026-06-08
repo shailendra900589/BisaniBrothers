@@ -161,18 +161,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             seo_ping_after_blog_change($pdo, $oldSlug, (bool) $is_orphan);
         }
 
-        if (is_array($edit_data) && !empty($edit_data['id'])) {
-            require_once '../includes/blog-translate.php';
-            $warmPost = $edit_data;
-            register_shutdown_function(static function () use ($warmPost): void {
-                if (function_exists('fastcgi_finish_request')) {
-                    @fastcgi_finish_request();
-                } elseif (function_exists('litespeed_finish_request')) {
-                    @litespeed_finish_request();
-                }
-                blog_warm_post_locales($warmPost);
-            });
-        }
     } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $edit_data = array_merge($edit_data ?? [], [
             'id'          => $id,
@@ -226,6 +214,7 @@ if (!empty($edit_data['slug'])) {
     <main class="flex-1 overflow-y-auto relative">
         <header class="bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-slate-200 px-8 h-20 flex items-center justify-between">
             <h2 class="text-2xl font-bold text-[#173978]">Blog Management</h2>
+            <a href="warm-blogs.php" class="bg-white border border-[#173978] text-[#173978] px-5 py-2 rounded-lg font-bold hover:bg-[#173978] hover:text-white transition-all shadow-md text-sm"><i class="fa-solid fa-language mr-2"></i> Warm translations</a>
             <a href="blogs.php" class="bg-[#2fcaf0] text-[#173978] px-5 py-2 rounded-lg font-bold hover:bg-[#173978] hover:text-white transition-all shadow-md text-sm"><i class="fa-solid fa-plus mr-2"></i> Create New</a>
         </header>
 
