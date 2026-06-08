@@ -9,7 +9,7 @@ function blog_translate_cache_dir(): string
 {
     $dir = dirname(__DIR__) . '/lang/cache/blog-translations';
     if (!is_dir($dir)) {
-        mkdir($dir, 0755, true);
+        @mkdir($dir, 0755, true);
     }
 
     return $dir;
@@ -20,11 +20,12 @@ function blog_translate_runtime_enabled(): bool
     if (getenv('BISANI_BLOG_TRANSLATE_OFF') === '1') {
         return false;
     }
-    if (getenv('BISANI_BLOG_TRANSLATE_LIVE') === '1') {
-        return true;
+    // Never run Google Translate during HTTP — locale switches must stay instant (no 500/timeouts).
+    if (php_sapi_name() !== 'cli') {
+        return false;
     }
 
-    return php_sapi_name() === 'cli';
+    return getenv('BISANI_BLOG_TRANSLATE_LIVE') === '1' || getenv('BISANI_BLOG_TRANSLATE_LIVE') !== '0';
 }
 
 function blog_translate_is_active(): bool

@@ -65,6 +65,7 @@ function locale_filter_output(string $html): string
 function locale_get_replacement_map(): array
 {
     locale_init();
+    require_once __DIR__ . '/locale.php';
 
-    return $GLOBALS['_locale_replacements'] ?? [];
+    return locale_ensure_replacements();
 }

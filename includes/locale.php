@@ -191,9 +191,32 @@ function locale_load_strings(string $code): array
 
     $merged = array_replace_recursive($enBase, $local);
     $merged['page'] = locale_load_page_strings($code);
-    $merged['_replacements'] = locale_build_replacements($code, $merged, $enBase);
 
     return $merged;
+}
+
+function locale_ensure_replacements(): array
+{
+    if (isset($GLOBALS['_locale_replacements']) && is_array($GLOBALS['_locale_replacements'])) {
+        return $GLOBALS['_locale_replacements'];
+    }
+
+    $code = locale_current();
+    if ($code === LOCALE_DEFAULT) {
+        $GLOBALS['_locale_replacements'] = [];
+
+        return [];
+    }
+
+    $enFile = dirname(__DIR__) . '/lang/en.php';
+    $enBase = is_file($enFile) ? require $enFile : [];
+    if (!is_array($enBase)) {
+        $enBase = [];
+    }
+    $merged = $GLOBALS['_locale_strings'] ?? locale_load_strings($code);
+    $GLOBALS['_locale_replacements'] = locale_build_replacements($code, $merged, $enBase);
+
+    return $GLOBALS['_locale_replacements'];
 }
 
 function locale_init(): void
@@ -206,10 +229,7 @@ function locale_init(): void
 
     $current = locale_detect();
     $GLOBALS['_locale_current'] = $current;
-    $loaded = locale_load_strings($current);
-    $GLOBALS['_locale_replacements'] = $loaded['_replacements'] ?? [];
-    unset($loaded['_replacements']);
-    $GLOBALS['_locale_strings'] = $loaded;
+    $GLOBALS['_locale_strings'] = locale_load_strings($current);
     locale_sync_cookie($current);
 
     require_once __DIR__ . '/page-i18n.php';
@@ -219,6 +239,7 @@ function locale_init(): void
 
     if ($current !== LOCALE_DEFAULT && !defined('LOCALE_OUTPUT_BUFFER') && !in_array($script, $skipOutputBuffer, true)) {
         define('LOCALE_OUTPUT_BUFFER', true);
+        locale_ensure_replacements();
         require_once __DIR__ . '/i18n-output.php';
         locale_start_output_buffer();
     }
@@ -292,7 +313,11 @@ function locale_request_path(): string
 
     $script = basename($_SERVER['SCRIPT_NAME'] ?? '');
     if ($script === 'blog-details.php' && !empty($_GET['slug'])) {
-        $path = '/' . rawurlencode($_GET['slug']);
+        $slug = trim(urldecode((string) $_GET['slug']));
+        if ($slug !== '' && preg_match('/\s/', $slug)) {
+            $slug = strtolower(trim(preg_replace('/[^a-z0-9-]+/', '-', $slug), '-'));
+        }
+        $path = '/' . rawurlencode($slug);
     } elseif ($script === 'job-details.php' && !empty($_GET['slug'])) {
         $path = '/jobs/' . rawurlencode($_GET['slug']);
     } elseif ($script === 'case-study-details.php' && !empty($_GET['slug'])) {
@@ -338,6 +363,15 @@ function locale_switch_url(string $targetLocale): string
     $path = locale_request_path();
     $relative = $path === '/' ? '' : ltrim($path, '/');
     $url = locale_url($relative, $targetLocale);
+
+    $query = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_QUERY);
+    if (is_string($query) && $query !== '') {
+        parse_str($query, $params);
+        unset($params['lang']);
+        if ($params !== []) {
+            $url .= (str_contains($url, '?') ? '&' : '?') . http_build_query($params);
+        }
+    }
 
     if ($targetLocale === LOCALE_DEFAULT) {
         $url .= (str_contains($url, '?') ? '&' : '?') . 'lang=en';

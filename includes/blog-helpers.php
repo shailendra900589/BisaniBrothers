@@ -254,14 +254,14 @@ function blog_fetch_by_slug(PDO $pdo, string $slug, ?string $locale = null): ?ar
         $post = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($post) {
             return blog_should_auto_translate($post, $locale)
-                ? blog_localize_post($post, $locale, 'full')
+                ? blog_localize_post_cached_only($post, $locale, 'full')
                 : $post;
         }
         if ($locale !== LOCALE_DEFAULT) {
             $stmt->execute([$slug, LOCALE_DEFAULT]);
             $post = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($post) {
-                return blog_localize_post($post, $locale, 'full');
+                return blog_localize_post_cached_only($post, $locale, 'full');
             }
         }
         return null;
@@ -273,7 +273,9 @@ function blog_fetch_by_slug(PDO $pdo, string $slug, ?string $locale = null): ?ar
     if (!$post) {
         return null;
     }
-    return blog_should_auto_translate($post, $locale) ? blog_localize_post($post, $locale, 'full') : $post;
+    return blog_should_auto_translate($post, $locale)
+        ? blog_localize_post_cached_only($post, $locale, 'full')
+        : $post;
 }
 
 /**
@@ -713,9 +715,14 @@ function blog_translate_category(string $category, ?string $locale = null): stri
     }
     static $cache = [];
     $key = $locale . '|' . strtolower($category);
-    if (!isset($cache[$key])) {
-        $cache[$key] = blog_translate_text($category, $locale);
+    if (isset($cache[$key])) {
+        return $cache[$key];
     }
+    if (!blog_translate_runtime_enabled()) {
+        $cache[$key] = $category;
+        return $category;
+    }
+    $cache[$key] = blog_translate_text($category, $locale);
     return $cache[$key];
 }
 
