@@ -6,6 +6,7 @@
  */
 return [
     'host' => 'localhost',
+    'port' => 3306,
     'name' => 'bisanibrothers_2026',
     'user' => 'BisaniBrothers_2026',
     'pass' => 'BBPLNTPL@4321',

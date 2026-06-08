@@ -1,13 +1,14 @@
 <?php
 /**
  * Database connection — auto-detects local XAMPP vs live server.
- * Local override: db.local.php (gitignored).
- * Live server: includes/db-live-config.php (auto on bisanibrothers.com).
+ * Live server: includes/db-live-config.php (bisanibrothers.com only).
+ * Local override: db.local.php (gitignored, localhost only).
  */
 require_once __DIR__ . '/includes/locale.php';
 locale_init();
 
 $dbHost = 'localhost';
+$dbPort = 3306;
 $dbName = 'bisanibrothers_2026';
 $dbCharset = 'utf8mb4';
 $dbUser = 'root';
@@ -19,20 +20,25 @@ $isLocal = (bool) preg_match('/^(localhost|127\.0\.0\.1)(:\d+)?$/i', $httpHost)
 $isLiveSite = !$isLocal && str_contains($httpHost, 'bisanibrothers.com');
 
 $localConfig = __DIR__ . '/db.local.php';
-if (is_file($localConfig)) {
-    require $localConfig;
-} elseif ($isLiveSite && is_file(__DIR__ . '/includes/db-live-config.php')) {
+
+if ($isLiveSite && is_file(__DIR__ . '/includes/db-live-config.php')) {
     $live = require __DIR__ . '/includes/db-live-config.php';
     if (is_array($live)) {
         $dbHost = $live['host'] ?? $dbHost;
+        $dbPort = (int) ($live['port'] ?? $dbPort);
         $dbName = $live['name'] ?? $dbName;
         $dbUser = $live['user'] ?? $dbUser;
         $dbPass = $live['pass'] ?? $dbPass;
     }
+} elseif ($isLocal && is_file($localConfig)) {
+    require $localConfig;
 }
 
 if (($envHost = getenv('BISANI_DB_HOST')) !== false && $envHost !== '') {
     $dbHost = $envHost;
+}
+if (($envPort = getenv('BISANI_DB_PORT')) !== false && $envPort !== '') {
+    $dbPort = (int) $envPort;
 }
 if (($envName = getenv('BISANI_DB_NAME')) !== false && $envName !== '') {
     $dbName = $envName;
@@ -64,46 +70,51 @@ $pdoOptions = [
     PDO::ATTR_EMULATE_PREPARES   => false,
 ];
 
-function db_build_candidates(string $host, string $name, string $user, string $pass, string $charset): array
+function db_build_candidates(string $host, int $port, string $name, string $user, string $pass, string $charset): array
 {
-    $candidates = [[
-        'host' => $host,
-        'name' => $name,
-        'user' => $user,
-        'pass' => $pass,
-        'charset' => $charset,
-    ]];
+    $hosts = array_unique(array_filter([
+        $host,
+        $host === 'localhost' ? '127.0.0.1' : null,
+        'localhost',
+    ]));
+
+    $names = [$name];
+    $users = [$user, strtolower($user)];
 
     $prefixes = ['BisaniBrothers_', 'bisanibrothers_', 'BisaniBrothers_com_'];
     foreach ($prefixes as $prefix) {
         if (!str_starts_with($name, $prefix)) {
-            $candidates[] = [
-                'host'    => $host,
-                'name'    => $prefix . $name,
-                'user'    => str_starts_with($user, $prefix) ? $user : $prefix . $user,
-                'pass'    => $pass,
-                'charset' => $charset,
-            ];
+            $names[] = $prefix . $name;
         }
     }
 
-    if ($host === 'localhost') {
-        $candidates[] = [
-            'host'    => '127.0.0.1',
-            'name'    => $name,
-            'user'    => $user,
-            'pass'    => $pass,
-            'charset' => $charset,
-        ];
+    foreach ($prefixes as $prefix) {
+        if (!str_starts_with($user, $prefix)) {
+            $users[] = $prefix . $user;
+            $users[] = $prefix . strtolower($user);
+        }
     }
 
-    $unique = [];
-    foreach ($candidates as $candidate) {
-        $key = implode('|', [$candidate['host'], $candidate['name'], $candidate['user']]);
-        $unique[$key] = $candidate;
+    $names = array_values(array_unique($names));
+    $users = array_values(array_unique($users));
+
+    $candidates = [];
+    foreach ($hosts as $h) {
+        foreach ($names as $n) {
+            foreach ($users as $u) {
+                $candidates[] = [
+                    'host'    => $h,
+                    'port'    => $port,
+                    'name'    => $n,
+                    'user'    => $u,
+                    'pass'    => $pass,
+                    'charset' => $charset,
+                ];
+            }
+        }
     }
 
-    return array_values($unique);
+    return $candidates;
 }
 
 function db_connect(array $candidates, array $options): ?PDO
@@ -112,8 +123,9 @@ function db_connect(array $candidates, array $options): ?PDO
 
     foreach ($candidates as $cfg) {
         $dsn = sprintf(
-            'mysql:host=%s;dbname=%s;charset=%s',
+            'mysql:host=%s;port=%d;dbname=%s;charset=%s',
             $cfg['host'],
+            $cfg['port'],
             $cfg['name'],
             $cfg['charset']
         );
@@ -133,7 +145,7 @@ function db_connect(array $candidates, array $options): ?PDO
 }
 
 try {
-    $candidates = db_build_candidates($dbHost, $dbName, $dbUser, $dbPass, $dbCharset);
+    $candidates = db_build_candidates($dbHost, $dbPort, $dbName, $dbUser, $dbPass, $dbCharset);
     $pdo = db_connect($candidates, $pdoOptions);
     if (!$pdo instanceof PDO) {
         throw new PDOException('Database connection failed.');
@@ -148,15 +160,20 @@ try {
         );
     }
 
+    $safeError = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
     http_response_code(503);
     header('Content-Type: text/html; charset=utf-8');
-    echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Database error</title></head><body style="font-family:sans-serif;max-width:640px;margin:3rem auto;padding:0 1rem;">';
+    echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Database error</title></head><body style="font-family:sans-serif;max-width:720px;margin:3rem auto;padding:0 1rem;">';
     echo '<h1>Database connection failed</h1>';
-    echo '<p>Pull the latest code in Plesk Git, then verify in <strong>Plesk → Databases</strong> that:</p>';
-    echo '<ul><li>Database <code>bisanibrothers_2026</code> exists</li>';
-    echo '<li>User <code>BisaniBrothers_2026</code> is linked to that database</li>';
-    echo '<li>SQL dump is imported</li></ul>';
-    echo '<p>Or create <code>db.local.php</code> in httpdocs to override credentials.</p>';
+    echo '<p><strong>Server says:</strong> <code>' . $safeError . '</code></p>';
+    echo '<p>In <strong>Plesk → Databases → bisanibrothers_2026</strong>:</p>';
+    echo '<ol>';
+    echo '<li>Open the database → ensure user <code>BisaniBrothers_2026</code> is <strong>assigned</strong> to this database</li>';
+    echo '<li>Reset password to match <code>includes/db-live-config.php</code>, then Git Pull</li>';
+    echo '<li>Import <code>bisanibrothers_2026.sql</code> via phpMyAdmin if tables are missing</li>';
+    echo '<li>If you created <code>db.local.php</code> in httpdocs with wrong details — <strong>delete it</strong></li>';
+    echo '</ol>';
+    echo '<p>Then: Plesk → Git → <strong>Pull Updates</strong> and reload this page.</p>';
     echo '</body></html>';
     exit;
 }
