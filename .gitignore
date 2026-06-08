@@ -10,6 +10,10 @@ db.local.php
 storage/mail-outbox/*
 !storage/mail-outbox/.gitkeep
 lang/cache/**
+!lang/cache/blog-translations/
+!lang/cache/blog-translations/**
+!lang/cache/replacements/
+!lang/cache/replacements/**
 uploads/**
 !uploads/.htaccess
 

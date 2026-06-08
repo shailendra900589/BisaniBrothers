@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Auto-translate English blog posts into the active locale (cached on disk).
+ * Auto-translate English blog posts into the active locale (disk cache only on web).
  */
 
 function blog_translate_cache_dir(): string
@@ -10,7 +10,17 @@ function blog_translate_cache_dir(): string
     if (!is_dir($dir)) {
         mkdir($dir, 0755, true);
     }
+
     return $dir;
+}
+
+function blog_translate_runtime_enabled(): bool
+{
+    if (getenv('BISANI_BLOG_TRANSLATE_LIVE') === '1') {
+        return true;
+    }
+
+    return php_sapi_name() === 'cli';
 }
 
 function blog_translate_source_hash(array $post): string
@@ -23,38 +33,45 @@ function blog_translate_source_hash(array $post): string
         $post['faq_json'] ?? '',
         $post['updated_at'] ?? $post['created_at'] ?? '',
     ];
+
     return md5(implode("\x1e", $parts));
 }
 
-function blog_translate_cache_path(int $blogId, string $locale): string
+function blog_translate_cache_path(int $blogId, string $localeKey): string
 {
-    return blog_translate_cache_dir() . '/' . $blogId . '-' . preg_replace('/[^a-z0-9_-]/i', '', $locale) . '.json';
+    $safe = preg_replace('/[^a-z0-9_-]/i', '', $localeKey);
+
+    return blog_translate_cache_dir() . '/' . $blogId . '-' . $safe . '.json';
 }
 
-function blog_translate_cache_get(int $blogId, string $locale, string $sourceHash): ?array
+function blog_translate_cache_get(int $blogId, string $localeKey, string $sourceHash): ?array
 {
-    $path = blog_translate_cache_path($blogId, $locale);
+    $path = blog_translate_cache_path($blogId, $localeKey);
     if (!is_file($path)) {
         return null;
     }
+
     $data = json_decode((string) file_get_contents($path), true);
     if (!is_array($data) || ($data['source_hash'] ?? '') !== $sourceHash) {
         return null;
     }
+
     return is_array($data['fields'] ?? null) ? $data['fields'] : null;
 }
 
-function blog_translate_cache_set(int $blogId, string $locale, string $sourceHash, array $fields): void
+function blog_translate_cache_set(int $blogId, string $localeKey, string $sourceHash, array $fields): void
 {
     $payload = [
         'source_hash' => $sourceHash,
-        'locale'      => $locale,
+        'locale'      => $localeKey,
         'updated_at'  => date('c'),
         'fields'      => $fields,
     ];
+
     file_put_contents(
-        blog_translate_cache_path($blogId, $locale),
-        json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
+        blog_translate_cache_path($blogId, $localeKey),
+        json_encode($payload, JSON_UNESCAPED_UNICODE),
+        LOCK_EX
     );
 }
 
@@ -65,8 +82,10 @@ function blog_translate_cache_clear(?int $blogId = null): void
         foreach (glob($dir . '/*.json') ?: [] as $file) {
             @unlink($file);
         }
+
         return;
     }
+
     foreach (glob($dir . '/' . $blogId . '-*.json') ?: [] as $file) {
         @unlink($file);
     }
@@ -88,7 +107,7 @@ function blog_translate_google(string $text, string $targetLang): string
 
     $ctx = stream_context_create([
         'http' => [
-            'timeout' => 45,
+            'timeout' => 20,
             'header'  => "User-Agent: Mozilla/5.0\r\n",
         ],
     ]);
@@ -120,6 +139,10 @@ function blog_translate_text(string $text, string $targetLang): string
         return $text;
     }
 
+    if (!blog_translate_runtime_enabled()) {
+        return $text;
+    }
+
     static $memory = [];
     $key = md5($targetLang . '|' . $text);
     if (isset($memory[$key])) {
@@ -135,7 +158,6 @@ function blog_translate_text(string $text, string $targetLang): string
             if (mb_strlen(strip_tags($buffer)) >= 400 || preg_match('/<\/p>|<\/h[23]>|<\/li>/i', $chunk)) {
                 $plain = trim(strip_tags(html_entity_decode($buffer, ENT_QUOTES | ENT_HTML5, 'UTF-8')));
                 if ($plain !== '') {
-                    usleep(80000);
                     $out .= blog_translate_google($buffer, $targetLang);
                 } else {
                     $out .= $buffer;
@@ -148,11 +170,12 @@ function blog_translate_text(string $text, string $targetLang): string
             $out .= $plain !== '' ? blog_translate_google($buffer, $targetLang) : $buffer;
         }
         $memory[$key] = $out;
+
         return $out;
     }
 
-    usleep(80000);
     $memory[$key] = blog_translate_google($text, $targetLang);
+
     return $memory[$key];
 }
 
@@ -172,13 +195,14 @@ function blog_translate_inline_html(string $html, string $targetLang): string
         $plain = trim(html_entity_decode(strip_tags($part), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
         $out .= $plain !== '' ? blog_translate_text($plain, $targetLang) : $part;
     }
+
     return $out;
 }
 
 function blog_translate_html(string $html, string $targetLang): string
 {
     require_once __DIR__ . '/locale.php';
-    if ($targetLang === LOCALE_DEFAULT || trim($html) === '') {
+    if ($targetLang === LOCALE_DEFAULT || trim($html) === '' || !blog_translate_runtime_enabled()) {
         return $html;
     }
 
@@ -196,6 +220,7 @@ function blog_translate_html(string $html, string $targetLang): string
         } else {
             $inner = blog_translate_inline_html($inner, $targetLang);
         }
+
         return '<' . $tag . $attrs . '>' . $inner . '</' . $tag . '>';
     }, $html);
 
@@ -228,10 +253,15 @@ function blog_localize_post(array $post, ?string $locale = null, string $depth =
     }
 
     $cacheKey = $depth === 'full' ? 'full' : 'summary';
+    $localeKey = $locale . '-' . $cacheKey;
     $sourceHash = blog_translate_source_hash($post) . '|' . $cacheKey;
-    $cached = blog_translate_cache_get($blogId, $locale . '-' . $cacheKey, $sourceHash);
+    $cached = blog_translate_cache_get($blogId, $localeKey, $sourceHash);
     if ($cached !== null) {
         return array_merge($post, $cached, ['_auto_translated' => true]);
+    }
+
+    if (!blog_translate_runtime_enabled()) {
+        return $post;
     }
 
     $fields = [
@@ -261,7 +291,7 @@ function blog_localize_post(array $post, ?string $locale = null, string $depth =
         }
     }
 
-    blog_translate_cache_set($blogId, $locale . '-' . $cacheKey, $sourceHash, $fields);
+    blog_translate_cache_set($blogId, $localeKey, $sourceHash, $fields);
 
     return array_merge($post, $fields, ['_auto_translated' => true]);
 }
@@ -272,5 +302,6 @@ function blog_localize_posts(array $posts, ?string $locale = null, string $depth
     foreach ($posts as $post) {
         $out[] = blog_localize_post($post, $locale, $depth);
     }
+
     return $out;
 }

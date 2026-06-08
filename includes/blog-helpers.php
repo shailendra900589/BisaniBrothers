@@ -2,10 +2,17 @@
 
 function blog_get_safe_path(?string $dbPath): string
 {
+    $fallback = 'assets/bg/Blog_page.webp';
     if (empty($dbPath)) {
-        return 'assets/images/default.jpg';
+        return $fallback;
     }
-    return ltrim(str_replace(['../', './'], '', $dbPath), '/');
+    $path = ltrim(str_replace(['../', './'], '', $dbPath), '/');
+    $full = dirname(__DIR__) . '/' . $path;
+    if (!is_file($full)) {
+        return $fallback;
+    }
+
+    return $path;
 }
 
 function blog_is_orphan(array $post): bool
@@ -325,10 +332,11 @@ function blog_fetch_linkable_posts(PDO $pdo): array
     if ($locale !== LOCALE_DEFAULT) {
         $rows = blog_localize_posts($rows, $locale, 'summary');
     }
+
     return array_map(static fn(array $row): array => [
         'title' => $row['title'],
         'slug'  => $row['slug'],
-    ], $rows);
+    ], array_slice($rows, 0, 40));
 }
 
 function blog_fetch_orphan_posts(PDO $pdo): array

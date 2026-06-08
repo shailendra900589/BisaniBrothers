@@ -80,7 +80,7 @@ include 'includes/header.php';
                 <a href="<?php echo htmlspecialchars(blog_detail_url($row['slug'])); ?>" class="block">
                     <div class="blog-card-thumb">
                         <div class="blog-card-thumb-media">
-                            <img src="<?php echo $img; ?>" alt="<?php echo htmlspecialchars($row['title']); ?>" loading="lazy">
+                            <img src="<?php echo $img; ?>" alt="<?php echo htmlspecialchars($row['title']); ?>" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='assets/bg/Blog_page.webp';">
                         </div>
                         <span class="blog-card-thumb-badge"><?php echo htmlspecialchars($row['category']); ?></span>
                     </div>

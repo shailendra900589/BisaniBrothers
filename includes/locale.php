@@ -214,7 +214,10 @@ function locale_init(): void
 
     require_once __DIR__ . '/page-i18n.php';
 
-    if (locale_current() !== LOCALE_DEFAULT && !defined('LOCALE_OUTPUT_BUFFER')) {
+    $skipOutputBuffer = ['blog', 'blog-details', 'rss', 'sitemap', 'llms'];
+    $script = basename($_SERVER['SCRIPT_NAME'] ?? '', '.php');
+
+    if ($current !== LOCALE_DEFAULT && !defined('LOCALE_OUTPUT_BUFFER') && !in_array($script, $skipOutputBuffer, true)) {
         define('LOCALE_OUTPUT_BUFFER', true);
         require_once __DIR__ . '/i18n-output.php';
         locale_start_output_buffer();

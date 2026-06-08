@@ -21,6 +21,7 @@ chmod 755 storage storage/mail-outbox uploads uploads/resumes 2>/dev/null || tru
 
 if command -v php >/dev/null 2>&1; then
   php scripts/warm-locale-cache.php 2>/dev/null || true
+  php scripts/warm-blog-translations.php 2>/dev/null || true
 fi
 
 echo "==> Deploy complete. Run migrations manually if needed:"

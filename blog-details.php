@@ -33,9 +33,11 @@ if (!$isOrphanPost) {
 
 $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'];
-$project_root = str_replace('\\', '/', realpath(__DIR__));
-$doc_root = str_replace('\\', '/', realpath($_SERVER['DOCUMENT_ROOT']));
-$relative_path = substr($project_root, strlen($doc_root));
+$project_root = str_replace('\\', '/', realpath(__DIR__) ?: __DIR__);
+$doc_root = str_replace('\\', '/', realpath($_SERVER['DOCUMENT_ROOT'] ?? '') ?: ($_SERVER['DOCUMENT_ROOT'] ?? ''));
+$relative_path = ($doc_root !== '' && str_starts_with($project_root, $doc_root))
+    ? substr($project_root, strlen($doc_root))
+    : '';
 $folder_path = ($relative_path === '' || $relative_path === '/') ? '/' : rtrim($relative_path, '/') . '/';
 $base_for_schema = $protocol . '://' . $host . $folder_path;
 $articleUrl = blog_post_url($post['slug'], rtrim($base_for_schema, '/'));
@@ -57,7 +59,7 @@ $readingMins = blog_reading_time($post['content'] ?? '');
 $displayCategory = blog_translate_category($post['category'] ?? '');
 $clean_content = blog_clean_content($post['content'] ?? '', $post['title'], $post['image_path'] ?? null);
 if (!$isOrphanPost && $allPublishedPosts) {
-    $clean_content = blog_inject_internal_links($clean_content, $allPublishedPosts, $post['slug'], 3);
+    $clean_content = blog_inject_internal_links($clean_content, array_slice($allPublishedPosts, 0, 40), $post['slug'], 3);
 }
 $clean_content = blog_add_heading_ids($clean_content);
 $tocItems = blog_build_toc($clean_content);
