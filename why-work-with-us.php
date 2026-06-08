@@ -15,7 +15,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $all_data = implode(" ", $_POST);
     if (preg_match('/http|www\.|ftp/i', $all_data)) {
-        echo "<script>alert('Error: Links are not allowed in this form.'); window.location.href='why-work-with-us.php';</script>";
+        require_once __DIR__ . '/includes/locale.php';
+        echo "<script>alert('Error: Links are not allowed in this form.'); window.location.href='" . htmlspecialchars(locale_url('why-work-with-us'), ENT_QUOTES) . "';</script>";
         exit();
     }
 
@@ -33,7 +34,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     ]);
 
     if ($result['status'] === 'success') {
-        header("Location: why-work-with-us.php?status=success");
+        require_once __DIR__ . '/includes/locale.php';
+        header('Location: ' . locale_url('why-work-with-us?status=success'));
         exit();
     }
 
@@ -45,7 +47,7 @@ include 'includes/header.php';
 ?>
 
 <?php if(isset($_GET['status']) && $_GET['status'] == 'success'): ?>
-<div id="success-alert" class="fixed top-24 left-1/2 transform -translate-x-1/2 z-50 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-2xl flex items-center animate-bounce" style="min-width: 300px;">
+<div id="success-alert" class="fixed top-24 left-1/2 transform -translate-x-1/2 z-50 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-2xl flex items-center animate-bounce bb-alert-min-w-300">
     <i class="fa-solid fa-check-circle text-2xl mr-3"></i>
     <div>
         <p class="font-bold"><?php echo page_te('success_title'); ?></p>
@@ -152,7 +154,7 @@ include 'includes/header.php';
 </section>
 
 <section class="py-24 bg-[#173978] text-white relative overflow-hidden">
-    <div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 30px 30px;"></div>
+    <div class="absolute inset-0 opacity-5 pointer-events-none bb-dot-grid-white-subtle"></div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
@@ -284,7 +286,7 @@ include 'includes/header.php';
             
             <form action="" method="POST" class="space-y-6">
                 
-                <input type="text" name="website_check" style="display:none !important;" tabindex="-1" autocomplete="off" >
+                <input type="text" name="website_check" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>

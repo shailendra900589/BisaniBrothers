@@ -190,43 +190,94 @@ return [
             'desc'  => 'Empowering businesses with smart, scalable FinTech solutions. Bisani Brothers drives sales, growth, staffing, and on-ground business execution across India.',
         ],
         'about' => [
-            'title' => 'About Us | Bisani Brothers',
-            'desc'  => 'Learn about Bisani Brothers — our mission, values, and on-ground execution expertise across India.',
+            'title' => 'About Bisani Brothers | Execution Partner India',
+            'desc'  => 'Learn how Bisani Brothers partners with growing businesses to scale faster across India through sales execution, staffing, market research, and disciplined on-ground operations.',
         ],
         'blog' => [
-            'title' => 'Blog & Insights | Bisani Brothers',
-            'desc'  => 'Business insights, FinTech, staffing, and field execution articles from Bisani Brothers.',
+            'title' => 'Business Insights Blog | Bisani Brothers',
+            'desc'  => 'FinTech, staffing, BTL marketing, and business growth articles from Bisani Brothers — practical insights for sales execution and on-ground operations in India.',
         ],
         'search' => [
-            'title' => 'Search | Bisani Brothers',
-            'desc'  => 'Search Bisani Brothers for services, blog articles, job openings, and FAQs.',
+            'title' => 'Search Bisani Brothers | Services & Careers',
+            'desc'  => 'Search Bisani Brothers for sales and staffing services, blog articles, job openings, case studies, industry pages, and frequently asked questions across India.',
         ],
         'careers' => [
-            'title' => 'Careers & Jobs | Bisani Brothers',
-            'desc'  => 'Join Bisani Brothers — field sales, operations, and growth roles across India.',
+            'title' => 'Careers at Bisani Brothers | Jobs in India',
+            'desc'  => 'Build your career with Bisani Brothers. Explore field sales, telesales, business development, collection executive, and operations roles in Lucknow, Patna, Delhi, and Chennai.',
         ],
         'contact' => [
-            'title' => 'Contact Us | Bisani Brothers',
-            'desc'  => 'Get in touch with Bisani Brothers for sales, staffing, and field execution partnerships.',
+            'title' => 'Contact Bisani Brothers | Lucknow Office',
+            'desc'  => 'Contact Bisani Brothers in Lucknow for sales execution, staffing solutions, market research, lending collection, and business growth partnerships across India.',
         ],
         'faqs' => [
-            'title' => 'FAQs | Bisani Brothers',
-            'desc'  => 'Frequently asked questions about Bisani Brothers services and partnerships.',
+            'title' => 'FAQs | Bisani Brothers Services & Careers',
+            'desc'  => 'Frequently asked questions about Bisani Brothers staffing, FinTech execution, BTL activation, lending collection, careers, partnerships, and on-ground operations in India.',
             'heading' => 'Frequently Asked Questions',
         ],
         'case-studies' => [
-            'title' => 'Case Studies | Bisani Brothers',
-            'desc'  => 'Client success stories and on-ground execution results from Bisani Brothers.',
+            'title' => 'Client Case Studies | Bisani Brothers',
+            'desc'  => 'Read client success stories from Bisani Brothers — how FinTech, NBFC, retail, and enterprise brands scale with disciplined field execution, staffing, and measurable on-ground results.',
         ],
         'industries' => [
-            'title' => 'Industries We Serve | Bisani Brothers',
-            'desc'  => 'FinTech, BFSI, retail, EV, education, and telecom field execution by Bisani Brothers.',
+            'title' => 'Industries We Serve | FinTech & BFSI',
+            'desc'  => 'Bisani Brothers serves FinTech, BFSI, retail, EV, education, agritech, and telecom with scalable on-ground execution, staffing deployment, and sales growth solutions across India.',
         ],
-        'sales-growth' => ['title' => 'Sales & Growth Solutions | Bisani Brothers', 'desc' => 'Field sales and merchant onboarding execution across India.'],
-        'staffing-solutions' => ['title' => 'Staffing Solutions | Bisani Brothers', 'desc' => 'Bulk hiring and workforce deployment for field operations.'],
-        'lending-collection' => ['title' => 'Lending & Collection | Bisani Brothers', 'desc' => 'NBFC and FinTech collection and lending field teams.'],
-        'privacy' => ['title' => 'Privacy Policy | Bisani Brothers', 'desc' => 'Privacy policy for Bisani Brothers website and services.'],
-        'terms' => ['title' => 'Terms of Use | Bisani Brothers', 'desc' => 'Terms of use for Bisani Brothers website.'],
+        'sales-growth' => [
+            'title' => 'Sales & Growth Solutions India | Bisani',
+            'desc'  => 'Accelerate merchant onboarding, lead generation, and regional sales growth with Bisani Brothers — structured field sales execution and customer acquisition teams across India.',
+        ],
+        'survey-market-research' => [
+            'title' => 'Survey & Market Research India | Bisani',
+            'desc'  => 'On-ground survey execution and market research by Bisani Brothers — real-time consumer insights, retail audits, and data collection for informed business decisions across India.',
+        ],
+        'staffing-solutions' => [
+            'title' => 'Staffing Solutions India | Bisani Brothers',
+            'desc'  => 'Bulk hiring and deployment-ready workforce from Bisani Brothers — trained field staff, sales teams, and manpower supply for operations and business expansion across India.',
+        ],
+        'btl-atl' => [
+            'title' => 'BTL & ATL Activation India | Bisani Brothers',
+            'desc'  => 'On-ground BTL and ATL brand activations by Bisani Brothers — experiential marketing, retail promotions, and field campaigns that build visibility and drive last-mile sales impact.',
+        ],
+        'lending-collection' => [
+            'title' => 'Lending & Collection Services | Bisani',
+            'desc'  => 'NBFC and FinTech lending field teams from Bisani Brothers — loan sales, EMI collection, recovery operations, and compliant customer engagement for financial services across India.',
+        ],
+        'ev-infrastructure' => [
+            'title' => 'EV Infrastructure Support India | Bisani',
+            'desc'  => 'EV charging infrastructure rollout support from Bisani Brothers — location identification, partner onboarding, field verification, and network expansion coordination across Indian markets.',
+        ],
+        'partner-with-us' => [
+            'title' => 'Partner With Us | Bisani Brothers',
+            'desc'  => 'Become a Bisani Brothers channel or execution partner — join our network for field associate opportunities, distributor partnerships, and scalable on-ground business growth across India.',
+        ],
+        'growth-partner' => [
+            'title' => 'Growth Partner Program | Bisani Brothers',
+            'desc'  => 'Join the Bisani Brothers Growth Partner program — flexible field work, part-time associate opportunities, and income from impactful sales and execution projects across India.',
+        ],
+        'why-work-with-us' => [
+            'title' => 'Why Work With Us | Bisani Brothers',
+            'desc'  => 'Discover why businesses trust Bisani Brothers — structured teams, disciplined processes, transparent reporting, and reliable on-ground execution for scalable growth across India.',
+        ],
+        'privacy' => [
+            'title' => 'Privacy Policy | Bisani Brothers',
+            'desc'  => 'Read the Bisani Brothers privacy policy — how we collect, use, and protect your personal information when you visit our website, submit enquiries, or subscribe to our newsletter.',
+        ],
+        'terms' => [
+            'title' => 'Terms of Use | Bisani Brothers',
+            'desc'  => 'Terms of use for the Bisani Brothers website and digital services — usage guidelines, intellectual property, disclaimers, and conditions governing access to our online content and forms.',
+        ],
+        'newsletter-unsubscribe' => [
+            'title' => 'Newsletter Unsubscribe | Bisani Brothers',
+            'desc'  => 'Manage your Bisani Brothers newsletter subscription — unsubscribe from marketing emails or update your preferences using your secure unsubscribe link.',
+        ],
+        'jobs-index' => [
+            'title' => 'All Job Openings | Bisani Brothers Careers',
+            'desc'  => 'Browse all active job openings at Bisani Brothers — field sales, telesales, operations, collection, and business development roles updated for candidates and search engines.',
+        ],
+        'orphan-index' => [
+            'title' => 'Article Index | Bisani Brothers Blog',
+            'desc'  => 'Complete index of Bisani Brothers blog articles and knowledge hub posts — FinTech, staffing, BTL, and business growth insights for readers and search discovery.',
+        ],
     ],
     'search_pages' => [
         ['title' => 'Sales & Growth Solutions', 'url' => 'sales-growth', 'keywords' => 'sales execution field sales growth India merchant onboarding'],

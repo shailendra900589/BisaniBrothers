@@ -112,7 +112,7 @@ include 'includes/header.php';
                 <form action="" method="POST" class="space-y-6" data-enquiry-form="1">
                     
                     <?php enquiry_form_hidden_fields(); ?>
-                    <input type="text" name="website_check" style="display:none !important;" tabindex="-1" autocomplete="off">
+                    <input type="text" name="website_check" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
@@ -175,7 +175,7 @@ include 'includes/header.php';
             </div>
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-[#2fcaf0] transition-colors cursor-pointer">
                 <h3 class="font-bold text-gray-900 text-lg mb-2">How can I apply for a job?</h3>
-                <p class="text-gray-600">You can visit our <a href="careers.php" class="text-[#2fcaf0] hover:underline">Careers page</a> or register as a <a href="partner-with-us" class="text-[#2fcaf0] hover:underline">Partner with Us,</a> if you are looking for flexible work.</p>
+                <p class="text-gray-600">You can visit our <a href="<?php echo htmlspecialchars(locale_url('careers')); ?>" class="text-[#2fcaf0] hover:underline">Careers page</a> or register as a <a href="<?php echo htmlspecialchars(locale_url('partner-with-us')); ?>" class="text-[#2fcaf0] hover:underline">Partner with Us,</a> if you are looking for flexible work.</p>
             </div>
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-[#2fcaf0] transition-colors cursor-pointer">
                 <h3 class="font-bold text-gray-900 text-lg mb-2">Where are your offices located?</h3>

@@ -121,7 +121,7 @@ function enquiry_render_status_alerts(): void
         default   => 'fa-circle-xmark',
     };
     ?>
-    <div id="enquiry-status-alert" class="fixed top-24 left-1/2 transform -translate-x-1/2 z-50 <?php echo $colors; ?> border-l-4 p-4 rounded shadow-2xl flex items-center w-[90%] sm:w-auto max-w-lg" style="min-width: 280px;">
+    <div id="enquiry-status-alert" class="fixed top-24 left-1/2 transform -translate-x-1/2 z-50 <?php echo $colors; ?> border-l-4 p-4 rounded shadow-2xl flex items-center w-[90%] sm:w-auto max-w-lg bb-alert-min-w-280">
         <i class="fa-solid <?php echo $icon; ?> text-2xl mr-3 shrink-0"></i>
         <div class="min-w-0">
             <p class="font-bold"><?php echo htmlspecialchars($alert['title']); ?></p>

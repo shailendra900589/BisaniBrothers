@@ -4,8 +4,14 @@ require_once 'includes/seo.php';
 require_once 'includes/search-helpers.php';
 
 $q = isset($_GET['q']) ? trim($_GET['q']) : (isset($_GET['search']) ? trim($_GET['search']) : '');
-$pageTitle = $q !== '' ? t('search.title') . ': ' . $q . ' | Bisani Brothers' : t('pages.search.title');
-$pageDesc = t('pages.search.desc');
+if ($q !== '') {
+    $pageTitle = t('search.title') . ': ' . $q . ' | Bisani Brothers';
+    $pageDesc = 'Search results for "' . $q . '" on Bisani Brothers — services, blog articles, jobs, case studies, industry pages, and FAQs across India.';
+    $robotsMeta = 'noindex, follow';
+} else {
+    $pageTitle = t('pages.search.title');
+    $pageDesc = t('pages.search.desc');
+}
 $results = $q !== '' ? search_site($pdo, $q) : [];
 
 include 'includes/header.php';

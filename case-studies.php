@@ -3,12 +3,28 @@ require 'db.php';
 require_once 'includes/case-study-helpers.php';
 
 $pageTitle = 'Client Success Stories | Bisani Brothers';
-$pageDesc = 'Case studies — how Bisani Brothers helps FinTech, NBFC, retail and enterprise clients scale with on-ground execution.';
+$pageDesc = 'Read client success stories from Bisani Brothers — how FinTech, NBFC, retail, and enterprise brands scale with disciplined field execution, staffing, and measurable on-ground results across India.';
 
 $cases = [];
 try {
     $cases = case_study_fetch_published($pdo);
 } catch (PDOException $e) {
+}
+
+require_once 'includes/seo.php';
+$caseCanonical = seo_canonical_for_path('case-studies');
+$caseSchemaItems = [];
+foreach ($cases as $cs) {
+    $caseSchemaItems[] = [
+        'name' => $cs['title'],
+        'url'  => seo_site_url_rtrim() . '/case-studies/' . rawurlencode($cs['slug']),
+    ];
+}
+$pageSchemas = [
+    seo_collection_page_schema($pageTitle, $pageDesc, $caseCanonical),
+];
+if ($caseSchemaItems !== []) {
+    $pageSchemas[] = seo_item_list_schema($pageTitle, $pageDesc, $caseSchemaItems, $caseCanonical);
 }
 
 include 'includes/header.php';

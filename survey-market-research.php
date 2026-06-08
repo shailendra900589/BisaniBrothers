@@ -134,7 +134,7 @@ if (str_starts_with($_introBody, $_introPrefix)) {
 </section>
 
 <section class="py-24 bg-[#173978] text-white relative overflow-hidden">
-    <div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 30px 30px;"></div>
+    <div class="absolute inset-0 opacity-5 pointer-events-none bb-dot-grid-white-subtle"></div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
@@ -252,7 +252,7 @@ if (str_starts_with($_introBody, $_introPrefix)) {
                     <form action="" method="POST" class="space-y-5" data-enquiry-form="1">
                         
                         <?php enquiry_form_hidden_fields(); ?>
-                        <input type="text" name="website_check" style="display:none !important;" tabindex="-1" autocomplete="off">
+                        <input type="text" name="website_check" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
 
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase mb-2 tracking-wider"><?php echo page_te('form_name'); ?></label>

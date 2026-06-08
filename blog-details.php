@@ -123,7 +123,7 @@ include 'includes/header.php';
                     <i class="fa-solid fa-layer-group"></i> <?php echo htmlspecialchars($displayCategory); ?>
                 </a>
                 <?php else: ?>
-                <span class="blog-meta-category" style="cursor:default;"><i class="fa-solid fa-layer-group"></i> <?php echo htmlspecialchars($displayCategory); ?></span>
+                <span class="blog-meta-category cursor-default"><i class="fa-solid fa-layer-group"></i> <?php echo htmlspecialchars($displayCategory); ?></span>
                 <?php endif; ?>
                 <span class="blog-meta-item"><i class="fa-regular fa-calendar"></i><?php echo date('M d, Y', strtotime($post['created_at'])); ?></span>
                 <span class="blog-meta-item"><i class="fa-regular fa-clock"></i><?php echo $readingMins; ?> <?php echo blog_page_te('min_read'); ?></span>

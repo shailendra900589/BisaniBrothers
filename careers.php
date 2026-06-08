@@ -68,7 +68,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 
                 if ($stmt->execute([$job_id, $name, $email, $phone, $resume_path, $applied_at])) {
                     // Success Redirect
-                    header("Location: careers.php?status=success");
+                    require_once __DIR__ . '/includes/locale.php';
+                    header('Location: ' . locale_url('careers?status=success'));
                     exit();
                 } else {
                     $status_msg = "Database Error: Could not save application.";
@@ -124,7 +125,7 @@ include 'includes/header.php';
 ?>
 
 <?php if(isset($_GET['status']) && $_GET['status'] == 'success'): ?>
-<div id="success-alert" class="fixed top-24 left-1/2 transform -translate-x-1/2 z-50 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-2xl flex items-center animate-bounce" style="min-width: 300px;">
+<div id="success-alert" class="fixed top-24 left-1/2 transform -translate-x-1/2 z-50 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-2xl flex items-center animate-bounce bb-alert-min-w-300">
     <i class="fa-solid fa-check-circle text-2xl mr-3"></i>
     <div>
         <p class="font-bold">Application Submitted!</p>
@@ -320,7 +321,7 @@ include 'includes/header.php';
         <form action="" method="POST" enctype="multipart/form-data" class="space-y-4">
             <input type="hidden" name="job_id" id="apply-job-id">
             
-            <input type="text" name="website_check" style="display:none !important;" tabindex="-1" autocomplete="off">
+            <input type="text" name="website_check" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
             
             <div>
                 <label class="block text-sm font-bold text-gray-700 mb-1">Full Name</label>

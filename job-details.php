@@ -92,7 +92,7 @@ include 'includes/header.php';
 ?>
 
 <?php if (isset($_GET['status']) && $_GET['status'] === 'success'): ?>
-<div class="fixed top-24 left-1/2 transform -translate-x-1/2 z-50 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-2xl flex items-center" style="min-width: 300px;">
+<div class="fixed top-24 left-1/2 transform -translate-x-1/2 z-50 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-2xl flex items-center bb-alert-min-w-300">
     <i class="fa-solid fa-check-circle text-2xl mr-3"></i>
     <div>
         <p class="font-bold">Application Submitted!</p>
@@ -148,7 +148,7 @@ include 'includes/header.php';
 
             <form method="POST" enctype="multipart/form-data" class="space-y-4">
                 <input type="hidden" name="job_id" value="<?php echo (int) $job['id']; ?>">
-                <input type="text" name="website_check" style="display:none !important;" tabindex="-1" autocomplete="off">
+                <input type="text" name="website_check" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
 
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1">Full Name</label>

@@ -525,11 +525,11 @@ function seo_blog_posting_schema(array $post, string $base_url): array
     ];
 }
 
-function seo_webpage_schema(string $pageTitle, string $pageDesc, string $canonical_url): array
+function seo_webpage_schema(string $pageTitle, string $pageDesc, string $canonical_url, string $type = 'WebPage'): array
 {
     return [
         '@context'    => 'https://schema.org',
-        '@type'       => 'WebPage',
+        '@type'       => $type,
         'name'        => $pageTitle,
         'description' => $pageDesc,
         'url'         => $canonical_url,
@@ -540,6 +540,63 @@ function seo_webpage_schema(string $pageTitle, string $pageDesc, string $canonic
             'url'   => seo_site_url(),
         ],
     ];
+}
+
+function seo_about_page_schema(string $pageTitle, string $pageDesc, string $canonical_url): array
+{
+    return seo_webpage_schema($pageTitle, $pageDesc, $canonical_url, 'AboutPage');
+}
+
+function seo_contact_page_schema(string $pageTitle, string $pageDesc, string $canonical_url): array
+{
+    $schema = seo_webpage_schema($pageTitle, $pageDesc, $canonical_url, 'ContactPage');
+    $schema['telephone'] = '+91-522-4530208';
+    $schema['email'] = 'contact@bisanibrother.com';
+
+    return $schema;
+}
+
+function seo_collection_page_schema(string $pageTitle, string $pageDesc, string $canonical_url): array
+{
+    return seo_webpage_schema($pageTitle, $pageDesc, $canonical_url, 'CollectionPage');
+}
+
+/**
+ * @param array<int, array{name: string, url: string}> $items
+ */
+function seo_item_list_schema(string $name, string $desc, array $items, string $canonical_url): array
+{
+    $list = [];
+    $pos = 1;
+    foreach ($items as $item) {
+        if (empty($item['name']) || empty($item['url'])) {
+            continue;
+        }
+        $list[] = [
+            '@type'    => 'ListItem',
+            'position' => $pos++,
+            'name'     => $item['name'],
+            'url'      => $item['url'],
+        ];
+    }
+
+    return [
+        '@context'        => 'https://schema.org',
+        '@type'           => 'ItemList',
+        'name'            => $name,
+        'description'     => $desc,
+        'url'             => $canonical_url,
+        'numberOfItems'   => count($list),
+        'itemListElement' => $list,
+    ];
+}
+
+function seo_canonical_for_path(string $relativePath = ''): string
+{
+    require_once __DIR__ . '/locale.php';
+    $path = locale_url(ltrim($relativePath, '/'));
+
+    return seo_site_url_rtrim() . ($path === '/' ? '/' : '/' . ltrim($path, '/'));
 }
 
 function seo_service_schema(string $serviceName, string $pageDesc, string $canonical_url): array

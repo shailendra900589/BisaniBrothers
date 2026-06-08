@@ -54,7 +54,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
                 date('Y-m-d H:i:s'),
             ]);
             if ($ok) {
-                header('Location: growth-partner.php?status=success');
+                require_once __DIR__ . '/includes/locale.php';
+                header('Location: ' . locale_url('growth-partner?status=success'));
                 exit();
             }
             $form_error = 'Unable to submit application. Please try again.';
@@ -78,7 +79,7 @@ include 'includes/header.php';
     }
 </script>
 
-<section class="relative py-20 md:py-28 overflow-hidden" style="background: radial-gradient(circle at center, #1e4b8f 0%, #173978 100%);">
+<section class="relative py-20 md:py-28 overflow-hidden bb-hero-gradient-radial">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col md:flex-row items-center justify-between gap-12 lg:gap-20">
         
         <div class="w-full md:w-1/2 text-center md:text-left animate-fade-in-up">
@@ -302,7 +303,7 @@ include 'includes/header.php';
                 <h3 class="text-xl font-bold text-[#173978] mb-6 border-b pb-2">Growth Partner Registration</h3>
                 
                 <form action="" method="POST" class="space-y-5">
-                    <input type="text" name="website_check" style="display:none !important;" tabindex="-1" autocomplete="off">
+                    <input type="text" name="website_check" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
 
                     <?php if ($form_error !== ''): ?>
                     <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"><?php echo htmlspecialchars($form_error); ?></div>

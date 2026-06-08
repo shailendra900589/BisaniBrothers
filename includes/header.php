@@ -32,10 +32,10 @@ $canonical_url = seo_build_canonical_url($base_url);
 
 $pageLocaleMeta = locale_page_meta($scriptName);
 if ($pageLocaleMeta) {
-    if (!empty($pageLocaleMeta['title'])) {
+    if (!isset($pageTitle) && !empty($pageLocaleMeta['title'])) {
         $pageTitle = $pageLocaleMeta['title'];
     }
-    if (!empty($pageLocaleMeta['desc'])) {
+    if (!isset($pageDesc) && !empty($pageLocaleMeta['desc'])) {
         $pageDesc = $pageLocaleMeta['desc'];
     }
 }
@@ -50,7 +50,13 @@ if (!isset($ogType)) { $ogType = 'website'; }
 if (!isset($pageSchemas)) { $pageSchemas = []; }
 
 if (empty($pageSchemas) && $scriptName !== '404' && $scriptName !== 'blog-details') {
-    $pageSchemas[] = seo_webpage_schema($pageTitle, $pageDesc, $canonical_url);
+    if ($scriptName === 'about') {
+        $pageSchemas[] = seo_about_page_schema($pageTitle, $pageDesc, $canonical_url);
+    } elseif ($scriptName === 'contact') {
+        $pageSchemas[] = seo_contact_page_schema($pageTitle, $pageDesc, $canonical_url);
+    } else {
+        $pageSchemas[] = seo_webpage_schema($pageTitle, $pageDesc, $canonical_url);
+    }
     if (in_array($scriptName, SEO_SERVICE_PAGES, true)) {
         $pageSchemas[] = seo_service_schema($pageTitle, $pageDesc, $canonical_url);
     }

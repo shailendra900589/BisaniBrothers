@@ -3,8 +3,25 @@ require 'db.php';
 require_once 'includes/industry-config.php';
 
 $pageTitle = 'Industries We Serve | Bisani Brothers';
-$pageDesc = 'FinTech, BFSI, retail, EV, education & telecom — on-ground execution and staffing across India.';
+$pageDesc = 'Bisani Brothers serves FinTech, BFSI, retail, EV, education, agritech, and telecom with scalable on-ground execution, staffing deployment, and sales growth solutions across India.';
 $industries = industry_get_all();
+
+require_once 'includes/seo.php';
+require_once 'includes/locale.php';
+$industryCanonical = seo_canonical_for_path('industries');
+$industrySchemaItems = [];
+foreach ($industries as $slug => $ind) {
+    $industrySchemaItems[] = [
+        'name' => $ind['name'],
+        'url'  => seo_site_url_rtrim() . '/' . ltrim(industry_url($slug), '/'),
+    ];
+}
+$pageSchemas = [
+    seo_collection_page_schema($pageTitle, $pageDesc, $industryCanonical),
+];
+if ($industrySchemaItems !== []) {
+    $pageSchemas[] = seo_item_list_schema($pageTitle, $pageDesc, $industrySchemaItems, $industryCanonical);
+}
 
 include 'includes/header.php';
 ?>

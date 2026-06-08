@@ -23,6 +23,8 @@ if ($email && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $pageTitle = 'Newsletter Unsubscribe | Bisani Brothers';
+$pageDesc = 'Manage your Bisani Brothers newsletter subscription — unsubscribe from marketing emails or update your preferences using your secure unsubscribe link.';
+$robotsMeta = 'noindex, follow';
 include __DIR__ . '/includes/header.php';
 ?>
 <section class="py-24 px-4">

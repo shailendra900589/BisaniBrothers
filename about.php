@@ -8,8 +8,7 @@ $pageDesc  = "Learn how Bisani Brothers partners with growing businesses to scal
 include 'includes/header.php'; // Assuming you have a header.php file
 ?>
 
-<section class="py-24 lg:py-32 bg-cover bg-center bg-no-repeat relative flex items-center" id="about-intro" 
-         style="background-image: url('assets/bg/about_bg.webp'); min-height: 600px;">
+<section class="py-24 lg:py-32 bg-cover bg-center bg-no-repeat relative flex items-center about-hero-bg" id="about-intro">
     
     <div class="absolute inset-0 bg-black/20"></div>
 
@@ -98,9 +97,7 @@ include 'includes/header.php'; // Assuming you have a header.php file
 
 <section class="py-24 bg-[#173978] relative overflow-hidden font-sans">
   
-  <div class="absolute inset-0 opacity-10 pointer-events-none" 
-       style="background-image: radial-gradient(#ffffff 1.5px, transparent 1.5px); background-size: 30px 30px;">
-  </div>
+  <div class="absolute inset-0 opacity-10 pointer-events-none bb-dot-grid-white-md"></div>
 
   <div class="absolute inset-0 bg-gradient-to-br from-transparent via-black/10 to-black/30 pointer-events-none"></div>
 
@@ -144,9 +141,7 @@ include 'includes/header.php'; // Assuming you have a header.php file
     <div class="absolute top-0 left-0 -translate-x-10 -translate-y-10 w-64 h-64 bg-[#2fcaf0] opacity-10 rounded-full blur-3xl"></div>
     <div class="absolute bottom-0 right-0 translate-x-10 translate-y-10 w-64 h-64 bg-[#cb595c] opacity-10 rounded-full blur-3xl"></div>
     
-    <div class="absolute inset-0 opacity-5 pointer-events-none" 
-         style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23000000\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');">
-    </div>
+    <div class="absolute inset-0 opacity-5 pointer-events-none about-pattern-bg"></div>
 
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
         

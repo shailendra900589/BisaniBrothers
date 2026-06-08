@@ -28,15 +28,34 @@ $listFilters = array_filter([
     'search'   => $filterSearch !== '' ? $filterSearch : null,
 ]);
 $currentPage = isset($_GET['page']) ? max(1, (int) $_GET['page']) : 1;
+if ($filterSearch !== '') {
+    $robotsMeta = 'noindex, follow';
+}
 $listResult = blog_fetch_list_page($pdo, $listFilters, $currentPage);
 $posts = $listResult['posts'];
 $pagination = $listResult['pagination'];
+
+require_once 'includes/seo.php';
+$blogCanonical = seo_canonical_for_path('blog');
+$blogSchemaItems = [];
+foreach ($posts as $row) {
+    $blogSchemaItems[] = [
+        'name' => $row['title'],
+        'url'  => seo_site_url_rtrim() . '/' . rawurlencode($row['slug']),
+    ];
+}
+$pageSchemas = [
+    seo_collection_page_schema($pageTitle, $pageDesc, $blogCanonical),
+];
+if ($blogSchemaItems !== []) {
+    $pageSchemas[] = seo_item_list_schema($pageTitle, $pageDesc, $blogSchemaItems, $blogCanonical);
+}
 
 include 'includes/header.php';
 ?>
 
 <section class="relative w-full py-24 md:py-32 flex items-center overflow-hidden">
-    <div class="absolute inset-0 z-0" style="min-height: 600px;">
+    <div class="absolute inset-0 z-0 blog-hero-min-h">
         <img src="assets/bg/Blog_page.webp"
              alt="News & Knowledge Hub" 
              class="w-full h-full object-cover object-center">

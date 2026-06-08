@@ -49,6 +49,7 @@ if ($faqSchemaItems) {
         ], $faqSchemaItems),
     ];
 }
+$pageSchemas[] = seo_webpage_schema($pageTitle, $pageDesc, seo_canonical_for_path('faqs'));
 
 include 'includes/header.php';
 ?>
