@@ -53,8 +53,9 @@ function search_site(PDO $pdo, string $query, int $limit = 30): array
     try {
         require_once __DIR__ . '/blog-translate.php';
         $localeSql = blog_has_locale_column($pdo) ? ' AND ' . blog_sql_locale_with_fallback() : '';
+        $searchCols = blog_sql_columns($pdo, ['id', 'title', 'slug', 'category', 'meta_desc', 'content', 'faq_json', 'created_at']);
         $stmt = $pdo->prepare(
-            'SELECT id, title, slug, category, meta_desc, content, locale, faq_json, created_at FROM blogs WHERE '
+            'SELECT ' . $searchCols . ' FROM blogs WHERE '
             . blog_sql_public_only()
             . $localeSql
             . ' AND (title LIKE ? OR content LIKE ? OR meta_desc LIKE ? OR keywords LIKE ? OR tags LIKE ?) ORDER BY created_at DESC LIMIT 30'

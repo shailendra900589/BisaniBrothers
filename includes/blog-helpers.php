@@ -34,18 +34,38 @@ function blog_sql_indexable(string $alias = ''): string
     return "{$p}is_published = 1";
 }
 
-function blog_has_locale_column(PDO $pdo): bool
+function blog_has_column(PDO $pdo, string $column): bool
 {
-    static $cache = null;
-    if ($cache !== null) {
-        return $cache;
+    static $cache = [];
+    if (array_key_exists($column, $cache)) {
+        return $cache[$column];
     }
     try {
-        $cache = (bool) $pdo->query("SHOW COLUMNS FROM blogs LIKE 'locale'")->fetch();
+        $cache[$column] = (bool) $pdo->query('SHOW COLUMNS FROM blogs LIKE ' . $pdo->quote($column))->fetch();
     } catch (PDOException $e) {
-        $cache = false;
+        $cache[$column] = false;
     }
-    return $cache;
+
+    return $cache[$column];
+}
+
+function blog_has_locale_column(PDO $pdo): bool
+{
+    return blog_has_column($pdo, 'locale');
+}
+
+/** Build a safe SELECT list for the live DB (locale/updated_at may be missing). */
+function blog_sql_columns(PDO $pdo, array $columns): string
+{
+    $cols = $columns;
+    if (blog_has_locale_column($pdo) && !in_array('locale', $cols, true)) {
+        $cols[] = 'locale';
+    }
+    if (blog_has_column($pdo, 'updated_at') && !in_array('updated_at', $cols, true)) {
+        $cols[] = 'updated_at';
+    }
+
+    return implode(', ', $cols);
 }
 
 function blog_normalize_slug(string $input): string
@@ -311,7 +331,7 @@ function blog_fetch_list(PDO $pdo, array $filters = []): array
         $params[] = $slike;
     }
 
-    $sql = 'SELECT id, title, slug, image_path, category, created_at, meta_desc, meta_title, locale, tags, keywords, updated_at, faq_json'
+    $sql = 'SELECT ' . blog_sql_columns($pdo, ['id', 'title', 'slug', 'image_path', 'category', 'created_at', 'meta_desc', 'meta_title', 'tags', 'keywords', 'faq_json'])
         . ' FROM blogs WHERE ' . implode(' AND ', $where) . ' ORDER BY created_at DESC';
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
@@ -329,7 +349,7 @@ function blog_fetch_linkable_posts(PDO $pdo): array
     require_once __DIR__ . '/blog-translate.php';
     $locale = locale_current();
     $localeSql = blog_has_locale_column($pdo) ? ' AND ' . blog_sql_locale_with_fallback() : '';
-    $sql = 'SELECT id, title, slug, locale FROM blogs WHERE '
+    $sql = 'SELECT ' . blog_sql_columns($pdo, ['id', 'title', 'slug']) . ' FROM blogs WHERE '
         . blog_sql_public_only() . $localeSql . ' ORDER BY created_at DESC LIMIT 80';
     $rows = blog_pick_locale_rows($pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC), $locale);
     if ($locale !== LOCALE_DEFAULT) {
@@ -741,16 +761,17 @@ function blog_fetch_sidebar_posts(PDO $pdo, int $excludeId, ?string $category = 
         $where .= ' AND ' . blog_sql_locale_with_fallback();
     }
 
+    $sidebarCols = blog_sql_columns($pdo, ['id', 'title', 'slug', 'category', 'created_at', 'meta_desc', 'meta_title']);
     if ($category) {
         $stmt = $pdo->prepare(
-            "SELECT id, title, slug, category, created_at, locale, meta_desc, meta_title, updated_at FROM blogs
+            "SELECT {$sidebarCols} FROM blogs
              WHERE {$where} AND id != ? AND category = ?
              ORDER BY created_at DESC LIMIT " . ($limit * 3)
         );
         $stmt->execute([$excludeId, $category]);
     } else {
         $stmt = $pdo->prepare(
-            "SELECT id, title, slug, category, created_at, locale, meta_desc, meta_title, updated_at FROM blogs
+            "SELECT {$sidebarCols} FROM blogs
              WHERE {$where} AND id != ?
              ORDER BY created_at DESC LIMIT " . ($limit * 3)
         );
@@ -774,8 +795,9 @@ function blog_fetch_prev_next(PDO $pdo, int $currentId, string $createdAt, bool 
         $where .= ' AND ' . blog_sql_locale_with_fallback();
     }
 
+    $navCols = blog_sql_columns($pdo, ['id', 'title', 'slug', 'category', 'meta_desc', 'meta_title', 'created_at']);
     $prevStmt = $pdo->prepare(
-        "SELECT id, title, slug, category, locale, meta_desc, meta_title, updated_at, created_at FROM blogs
+        "SELECT {$navCols} FROM blogs
          WHERE {$where} AND created_at < ?
          ORDER BY created_at DESC LIMIT 6"
     );
@@ -784,7 +806,7 @@ function blog_fetch_prev_next(PDO $pdo, int $currentId, string $createdAt, bool 
     $prev = $prevRows[0] ?? null;
 
     $nextStmt = $pdo->prepare(
-        "SELECT id, title, slug, category, locale, meta_desc, meta_title, updated_at, created_at FROM blogs
+        "SELECT {$navCols} FROM blogs
          WHERE {$where} AND created_at > ?
          ORDER BY created_at ASC LIMIT 6"
     );
@@ -816,8 +838,9 @@ function blog_fetch_related(PDO $pdo, int $excludeId, string $category, int $lim
         $where .= ' AND ' . blog_sql_locale_with_fallback();
     }
 
+    $relatedCols = blog_sql_columns($pdo, ['id', 'title', 'slug', 'image_path', 'created_at', 'category', 'meta_desc', 'meta_title']);
     $stmt = $pdo->prepare(
-        "SELECT id, title, slug, image_path, created_at, category, locale, meta_desc, meta_title, updated_at FROM blogs
+        "SELECT {$relatedCols} FROM blogs
          WHERE {$where} AND category = ? AND id != ?
          ORDER BY created_at DESC LIMIT " . max($limit * 3, $limit)
     );
