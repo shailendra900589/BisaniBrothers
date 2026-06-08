@@ -274,14 +274,14 @@ function blog_fetch_by_slug(PDO $pdo, string $slug, ?string $locale = null): ?ar
         $post = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($post) {
             return blog_should_auto_translate($post, $locale)
-                ? blog_localize_post_cached_only($post, $locale, 'full')
+                ? blog_localize_post_for_web($post, $locale, 'full')
                 : $post;
         }
         if ($locale !== LOCALE_DEFAULT) {
             $stmt->execute([$slug, LOCALE_DEFAULT]);
             $post = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($post) {
-                return blog_localize_post_cached_only($post, $locale, 'full');
+                return blog_localize_post_for_web($post, $locale, 'full');
             }
         }
         return null;
@@ -294,7 +294,7 @@ function blog_fetch_by_slug(PDO $pdo, string $slug, ?string $locale = null): ?ar
         return null;
     }
     return blog_should_auto_translate($post, $locale)
-        ? blog_localize_post_cached_only($post, $locale, 'full')
+        ? blog_localize_post_for_web($post, $locale, 'full')
         : $post;
 }
 
@@ -341,7 +341,7 @@ function blog_fetch_list(PDO $pdo, array $filters = []): array
         return $rows;
     }
 
-    return blog_localize_posts_cached_only($rows, $locale, 'summary');
+    return blog_localize_posts_for_web($rows, $locale, 'summary');
 }
 
 function blog_fetch_linkable_posts(PDO $pdo): array
@@ -353,7 +353,7 @@ function blog_fetch_linkable_posts(PDO $pdo): array
         . blog_sql_public_only() . $localeSql . ' ORDER BY created_at DESC LIMIT 80';
     $rows = blog_pick_locale_rows($pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC), $locale);
     if ($locale !== LOCALE_DEFAULT) {
-        $rows = blog_localize_posts_cached_only($rows, $locale, 'summary');
+        $rows = blog_localize_posts_for_web($rows, $locale, 'summary');
     }
 
     return array_map(static fn(array $row): array => [
@@ -812,7 +812,7 @@ function blog_fetch_sidebar_posts(PDO $pdo, int $excludeId, ?string $category = 
     $rows = blog_pick_locale_rows($stmt->fetchAll(PDO::FETCH_ASSOC), $locale);
     $rows = array_slice($rows, 0, $limit);
     if ($locale !== LOCALE_DEFAULT) {
-        $rows = blog_localize_posts_cached_only($rows, $locale, 'summary');
+        $rows = blog_localize_posts_for_web($rows, $locale, 'summary');
     }
     return $rows;
 }
@@ -847,10 +847,10 @@ function blog_fetch_prev_next(PDO $pdo, int $currentId, string $createdAt, bool 
 
     if ($locale !== LOCALE_DEFAULT) {
         if ($prev) {
-            $prev = blog_localize_post_cached_only($prev, $locale, 'summary');
+            $prev = blog_localize_post_for_web($prev, $locale, 'summary');
         }
         if ($next) {
-            $next = blog_localize_post_cached_only($next, $locale, 'summary');
+            $next = blog_localize_post_for_web($next, $locale, 'summary');
         }
     }
 
@@ -879,7 +879,7 @@ function blog_fetch_related(PDO $pdo, int $excludeId, string $category, int $lim
     $rows = blog_pick_locale_rows($stmt->fetchAll(PDO::FETCH_ASSOC), $locale);
     $rows = array_slice($rows, 0, $limit);
     if ($locale !== LOCALE_DEFAULT) {
-        $rows = blog_localize_posts_cached_only($rows, $locale, 'summary');
+        $rows = blog_localize_posts_for_web($rows, $locale, 'summary');
     }
     return $rows;
 }

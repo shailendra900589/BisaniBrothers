@@ -1,4 +1,5 @@
 <?php
+@set_time_limit(120);
 require 'db.php';
 require_once 'includes/blog-helpers.php';
 

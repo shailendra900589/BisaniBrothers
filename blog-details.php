@@ -3,7 +3,7 @@ require 'db.php';
 require_once 'includes/seo.php';
 require_once 'includes/blog-helpers.php';
 
-@set_time_limit(60);
+@set_time_limit(300);
 
 $post = null;
 if (isset($_GET['slug'])) {
