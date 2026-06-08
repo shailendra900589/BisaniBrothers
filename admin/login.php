@@ -1,8 +1,8 @@
 <?php
 require_once __DIR__ . '/../includes/security.php';
 security_bootstrap();
-require 'db.php';
-require_once __DIR__ . '/includes/assets.php';
+require __DIR__ . '/../db.php';
+require_once __DIR__ . '/../includes/assets.php';
 
 $error = '';
 
