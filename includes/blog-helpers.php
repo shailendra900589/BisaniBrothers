@@ -792,7 +792,7 @@ function blog_fetch_sidebar_posts(PDO $pdo, int $excludeId, ?string $category = 
         $where .= ' AND ' . blog_sql_locale_with_fallback();
     }
 
-    $sidebarCols = blog_sql_columns($pdo, ['id', 'title', 'slug', 'category', 'created_at', 'meta_desc', 'meta_title']);
+    $sidebarCols = blog_sql_columns($pdo, ['id', 'title', 'slug', 'category', 'created_at', 'meta_desc', 'meta_title', 'faq_json']);
     if ($category) {
         $stmt = $pdo->prepare(
             "SELECT {$sidebarCols} FROM blogs
@@ -826,7 +826,7 @@ function blog_fetch_prev_next(PDO $pdo, int $currentId, string $createdAt, bool 
         $where .= ' AND ' . blog_sql_locale_with_fallback();
     }
 
-    $navCols = blog_sql_columns($pdo, ['id', 'title', 'slug', 'category', 'meta_desc', 'meta_title', 'created_at']);
+    $navCols = blog_sql_columns($pdo, ['id', 'title', 'slug', 'category', 'meta_desc', 'meta_title', 'created_at', 'faq_json']);
     $prevStmt = $pdo->prepare(
         "SELECT {$navCols} FROM blogs
          WHERE {$where} AND created_at < ?
@@ -869,7 +869,7 @@ function blog_fetch_related(PDO $pdo, int $excludeId, string $category, int $lim
         $where .= ' AND ' . blog_sql_locale_with_fallback();
     }
 
-    $relatedCols = blog_sql_columns($pdo, ['id', 'title', 'slug', 'image_path', 'created_at', 'category', 'meta_desc', 'meta_title']);
+    $relatedCols = blog_sql_columns($pdo, ['id', 'title', 'slug', 'image_path', 'created_at', 'category', 'meta_desc', 'meta_title', 'faq_json']);
     $stmt = $pdo->prepare(
         "SELECT {$relatedCols} FROM blogs
          WHERE {$where} AND category = ? AND id != ?

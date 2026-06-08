@@ -104,11 +104,11 @@ function blog_translate_source_hash(array $post, string $depth = 'full'): string
             $post['created_at'] ?? '',
         ];
     } else {
+        // Summary hash must not use faq_json — listing/related queries omit that column.
         $parts = [
             $post['title'] ?? '',
             $post['meta_title'] ?? '',
             $post['meta_desc'] ?? '',
-            $post['faq_json'] ?? '',
             $post['created_at'] ?? '',
         ];
     }
@@ -140,11 +140,23 @@ function blog_translate_cache_get(int $blogId, string $localeKey, string $source
     $path = blog_translate_cache_path($blogId, $localeKey);
     if (is_file($path)) {
         $data = json_decode((string) file_get_contents($path), true);
-        if (is_array($data) && ($data['source_hash'] ?? '') === $sourceHash) {
+        if (is_array($data)) {
             $fields = is_array($data['fields'] ?? null) ? $data['fields'] : null;
-            $memory[$memKey] = $fields;
+            if ($fields !== null && trim((string) ($fields['title'] ?? '')) !== '') {
+                if (($data['source_hash'] ?? '') === $sourceHash) {
+                    $memory[$memKey] = $fields;
 
-            return $fields;
+                    return $fields;
+                }
+                // Fuzzy hit — partial SELECT rows (no faq_json) use a different hash.
+                $fuzzyKey = $blogId . '|' . $localeKey . '|fuzzy';
+                if (!array_key_exists($fuzzyKey, $memory)) {
+                    $memory[$fuzzyKey] = $fields;
+                }
+                $memory[$memKey] = $memory[$fuzzyKey];
+
+                return $memory[$fuzzyKey];
+            }
         }
     }
 
@@ -519,31 +531,42 @@ function blog_build_localized_fields(array $post, string $locale, string $depth)
     ];
 
     if ($depth === 'full') {
-        $content = (string) ($post['content'] ?? '');
-        $fields['content'] = blog_translate_html($content, $locale);
-
-        if (!empty($post['faq_json'])) {
-            require_once __DIR__ . '/blog-helpers.php';
-            $faq = blog_parse_faq($post['faq_json']);
-            $faqTexts = [];
-            foreach ($faq as $item) {
-                $faqTexts[] = (string) ($item['question'] ?? '');
-                $faqTexts[] = (string) ($item['answer'] ?? '');
-            }
-            $faqTranslated = blog_translate_texts_parallel($faqTexts, $locale);
-            foreach ($faq as $idx => &$item) {
-                $item['question'] = $faqTranslated[$idx * 2] ?? $item['question'];
-                $item['answer'] = $faqTranslated[$idx * 2 + 1] ?? $item['answer'];
-            }
-            unset($item);
-            $fields['faq_json'] = json_encode($faq, JSON_UNESCAPED_UNICODE);
-        }
+        $fields = array_merge($fields, blog_build_content_fields($post, $locale));
     } elseif (trim($fields['meta_desc']) === '') {
         require_once __DIR__ . '/blog-helpers.php';
         $snippet = blog_excerpt($post['content'] ?? '', 280);
         if ($snippet !== '') {
             $fields['_listing_excerpt'] = blog_translate_text($snippet, $locale);
         }
+    }
+
+    return $fields;
+}
+
+/** @return array<string, mixed> */
+function blog_build_content_fields(array $post, string $locale): array
+{
+    $fields = [];
+    $content = (string) ($post['content'] ?? '');
+    if ($content !== '') {
+        $fields['content'] = blog_translate_html($content, $locale);
+    }
+
+    if (!empty($post['faq_json'])) {
+        require_once __DIR__ . '/blog-helpers.php';
+        $faq = blog_parse_faq($post['faq_json']);
+        $faqTexts = [];
+        foreach ($faq as $item) {
+            $faqTexts[] = (string) ($item['question'] ?? '');
+            $faqTexts[] = (string) ($item['answer'] ?? '');
+        }
+        $faqTranslated = blog_translate_texts_parallel($faqTexts, $locale);
+        foreach ($faq as $idx => &$item) {
+            $item['question'] = $faqTranslated[$idx * 2] ?? $item['question'];
+            $item['answer'] = $faqTranslated[$idx * 2 + 1] ?? $item['answer'];
+        }
+        unset($item);
+        $fields['faq_json'] = json_encode($faq, JSON_UNESCAPED_UNICODE);
     }
 
     return $fields;
@@ -733,6 +756,15 @@ function blog_localize_post(array $post, ?string $locale = null, string $depth =
         return array_merge($post, $cached, ['_auto_translated' => true]);
     }
 
+    $summaryCached = null;
+    if ($depth === 'full') {
+        $summaryCached = blog_translate_cache_get(
+            $blogId,
+            $locale . '-summary',
+            blog_translate_source_hash($post, 'summary') . '|summary'
+        );
+    }
+
     if ($allowLiveTranslate && blog_translate_runtime_enabled()) {
         if (blog_warm_post_translation($post, $locale, $depth)) {
             $cached = blog_translate_cache_get($blogId, $localeKey, $sourceHash);
@@ -740,8 +772,30 @@ function blog_localize_post(array $post, ?string $locale = null, string $depth =
                 return array_merge($post, $cached, ['_auto_translated' => true]);
             }
         }
+
+        if ($depth === 'full' && !empty($post['content'])) {
+            $base = $summaryCached ?? [
+                'title'      => (string) ($post['title'] ?? ''),
+                'meta_title' => (string) ($post['meta_title'] ?? ''),
+                'meta_desc'  => (string) ($post['meta_desc'] ?? ''),
+            ];
+            if ($summaryCached === null) {
+                [$base['title'], $base['meta_title'], $base['meta_desc']] = blog_translate_texts_parallel(
+                    [$base['title'], $base['meta_title'], $base['meta_desc']],
+                    $locale
+                );
+            }
+            $fields = array_merge($base, blog_build_content_fields($post, $locale));
+            blog_translate_cache_set($blogId, $localeKey, $sourceHash, $fields);
+
+            return array_merge($post, $fields, ['_auto_translated' => true]);
+        }
     } elseif (!blog_is_web_blog_page()) {
         blog_queue_warm_job($blogId, $locale, $depth);
+    }
+
+    if ($summaryCached !== null && $depth === 'summary') {
+        return array_merge($post, $summaryCached, ['_auto_translated' => true]);
     }
 
     return $post;
@@ -771,13 +825,9 @@ function blog_localize_posts_cached_only(array $posts, ?string $locale = null, s
 /** Live Google Translate on blog pages (cache-first, then free API, then warm fallback). */
 function blog_localize_post_for_web(array $post, ?string $locale = null, string $depth = 'summary'): array
 {
-    $mainId = $GLOBALS['_blog_main_post_id'] ?? null;
-    $postId = (int) ($post['id'] ?? 0);
-    if ($mainId !== null && $postId !== (int) $mainId) {
-        return blog_localize_post_cached_only($post, $locale, $depth);
-    }
+    $rows = blog_localize_posts_for_web([$post], $locale, $depth);
 
-    return blog_localize_post($post, $locale, $depth, true);
+    return $rows[0] ?? $post;
 }
 
 function blog_localize_posts_for_web(array $posts, ?string $locale = null, string $depth = 'summary'): array
@@ -793,7 +843,9 @@ function blog_localize_posts_for_web(array $posts, ?string $locale = null, strin
 
     foreach ($posts as $i => $post) {
         $cached = blog_localize_post_cached_only($post, $locale, $depth);
-        if (!empty($cached['_auto_translated'])) {
+        $cacheComplete = !empty($cached['_auto_translated'])
+            && ($depth === 'summary' || !empty($cached['content']));
+        if ($cacheComplete) {
             $out[$i] = $cached;
         } else {
             $toWarm[$i] = $post;
