@@ -42,21 +42,11 @@ include 'includes/header.php'; // Assuming you have a header.php file
         <div class="bg-white rounded-[2.5rem] p-8 md:p-16 shadow-[0_20px_60px_rgba(0,0,0,0.05)] border border-gray-100" data-aos="fade-up">
             
             <div class="space-y-8 text-lg md:text-xl text-gray-600 leading-relaxed">
-                <p>
-                    <span class="font-bold text-[#173978]">Bisani Brothers Private Limited</span> is built on one simple idea: to 
-                    <span class="font-bold text-[#173978] border-b-[3px] border-[#2fcaf0] pb-0.5">grow together</span>. 
-                    We partner with businesses to help them <span class="font-bold text-[#173978]">scale</span>, as well as with individuals and agencies that bring <span class="font-bold text-[#173978]">dedication, energy, and expertise</span> to every project.
-                </p>
-                
-
-                <p>
-                    Whether it’s merchant onboarding, surveys, lending, or on-ground activation, our work is driven by 
-                    <span class="font-bold text-[#173978] border-b-[3px] border-[#2fcaf0] pb-0.5">creating meaningful impact and tangible growth</span> — for our clients and for every person who associates with us.
-                </p>
-
+                <p><?php echo page_te('intro_p1'); ?></p>
+                <p><?php echo page_te('intro_p2'); ?></p>
                 <div class="border-l-[5px] border-[#173978] pl-8 py-2 my-10 bg-gray-50/50 rounded-r-2xl">
                     <p class="font-medium text-[#173978] italic text-xl leading-relaxed">
-                        We don’t just execute services; we become an extension of your business, aligning with your goals and sharing in the journey of growth.
+                        <?php echo page_te('intro_quote'); ?>
                     </p>
                 </div>
             </div>
@@ -118,16 +108,11 @@ include 'includes/header.php'; // Assuming you have a header.php file
       <div class="w-full md:w-2/3">
         
         <p class="text-lg md:text-xl text-blue-50 leading-loose text-justify font-normal opacity-95">
-          Bisani Brothers was shaped by a moment that redefined purpose. After a life-altering experience, our founder, 
-          <span class="font-bold text-[#2fcaf0]">Mr. Ashish Bisani</span>, set out to create something that goes beyond business, a platform that creates 
-          <span class="font-bold text-[#2fcaf0]">opportunity</span>, <span class="font-bold text-[#2fcaf0]">employment</span>, and <span class="font-bold text-[#2fcaf0]">growth</span>. 
-          What began as a vision to give back evolved into an ecosystem where individuals and companies grow together. Over the years, we’ve enabled 
-          <span class="font-bold text-[#2fcaf0]">2,100+ people</span> across <span class="font-bold text-[#2fcaf0]">tier-one and tier-two cities</span> to build sustainable livelihoods while contributing to real business outcomes.
+          <?php echo page_te('story_p1'); ?>
         </p>
 
         <p class="mt-8 text-lg md:text-xl text-blue-50 leading-loose text-justify font-normal opacity-95">
-            At <span class="font-bold text-white">Bisani Brothers</span>, growth isn’t transactional; it’s <span class="font-bold text-[#2fcaf0]">collaborative</span>.
-            When our partners grow, our people grow, and together, we build something that lasts.
+            <?php echo page_te('story_p2'); ?>
         </p>
 
       </div>
@@ -155,7 +140,7 @@ include 'includes/header.php'; // Assuming you have a header.php file
         <!-- <div class="w-24 h-1.5 bg-[#cb595c] rounded-full mx-auto mb-8" data-aos="zoom-in" data-aos-delay="200"></div> -->
 
         <p class="text-xl text-gray-600 leading-relaxed font-medium mb-10" data-aos="fade-up" data-aos-delay="300">
-            If you’re looking to <span class="text-gray-900 font-bold">partner with a team</span> or <span class="text-gray-900 font-bold">that values ownership, execution, and <br> long-term thinking</span> we’d be glad to start a conversation.
+            <?php echo page_te('cta_desc'); ?>
         </p>
 
         <div class="flex flex-col sm:flex-row items-center justify-center gap-6" data-aos="fade-up" data-aos-delay="400">

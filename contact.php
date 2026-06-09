@@ -79,7 +79,7 @@ include 'includes/header.php';
                             <i class="fa-solid fa-location-dot mt-1 text-[#2fcaf0]"></i>
                             <div>
                                 <span class="block text-xs font-bold uppercase text-blue-300"><?php echo page_te('hq'); ?></span>
-                                <span class="font-medium">Mumbai, Gurugram and Lucknow</span>
+                                <span class="font-medium"><?php echo page_te('hq_locations'); ?></span>
                             </div>
                         </div>
                     </div>
@@ -164,22 +164,28 @@ include 'includes/header.php';
 <section class="py-20 bg-gray-50">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12">
-            <h2 class="text-3xl font-extrabold text-[#173978]">Frequently Asked Questions</h2>
-            <p class="text-gray-500 mt-2"><a href="faqs" class="text-[#2fcaf0] font-semibold hover:underline">View all FAQs →</a></p>
+            <h2 class="text-3xl font-extrabold text-[#173978]"><?php echo page_te('faq_title'); ?></h2>
+            <p class="text-gray-500 mt-2"><a href="<?php echo htmlspecialchars(locale_url('faqs')); ?>" class="text-[#2fcaf0] font-semibold hover:underline"><?php echo page_te('faq_view_all'); ?> →</a></p>
         </div>
 
         <div class="space-y-4">
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-[#2fcaf0] transition-colors cursor-pointer">
-                <h3 class="font-bold text-gray-900 text-lg mb-2">Do you provide staffing for all industries?</h3>
-                <p class="text-gray-600">Yes, we specialize in FinTech, Sales, BFSI, Retail, and Operational staffing across various sectors.</p>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-[#2fcaf0] transition-colors">
+                <h3 class="font-bold text-gray-900 text-lg mb-2"><?php echo page_te('faq1_q'); ?></h3>
+                <p class="text-gray-600"><?php echo page_te('faq1_a'); ?></p>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-[#2fcaf0] transition-colors cursor-pointer">
-                <h3 class="font-bold text-gray-900 text-lg mb-2">How can I apply for a job?</h3>
-                <p class="text-gray-600">You can visit our <a href="<?php echo htmlspecialchars(locale_url('careers')); ?>" class="text-[#2fcaf0] hover:underline">Careers page</a> or register as a <a href="<?php echo htmlspecialchars(locale_url('partner-with-us')); ?>" class="text-[#2fcaf0] hover:underline">Partner with Us,</a> if you are looking for flexible work.</p>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-[#2fcaf0] transition-colors">
+                <h3 class="font-bold text-gray-900 text-lg mb-2"><?php echo page_te('faq2_q'); ?></h3>
+                <p class="text-gray-600">
+                    <?php echo page_te('faq2_a_before'); ?>
+                    <a href="<?php echo htmlspecialchars(locale_url('careers')); ?>" class="text-[#2fcaf0] hover:underline"><?php echo page_te('faq2_careers_link'); ?></a>
+                    <?php echo page_te('faq2_a_mid'); ?>
+                    <a href="<?php echo htmlspecialchars(locale_url('partner-with-us')); ?>" class="text-[#2fcaf0] hover:underline"><?php echo page_te('faq2_partner_link'); ?></a>
+                    <?php echo page_te('faq2_a_after'); ?>
+                </p>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-[#2fcaf0] transition-colors cursor-pointer">
-                <h3 class="font-bold text-gray-900 text-lg mb-2">Where are your offices located?</h3>
-                <p class="text-gray-600">We have offices in Mumbai, Delhi, and Lucknow, with operational teams across multiple states in India.</p>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-[#2fcaf0] transition-colors">
+                <h3 class="font-bold text-gray-900 text-lg mb-2"><?php echo page_te('faq3_q'); ?></h3>
+                <p class="text-gray-600"><?php echo page_te('faq3_a'); ?></p>
             </div>
         </div>
     </div>
