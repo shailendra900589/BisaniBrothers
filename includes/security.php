@@ -222,6 +222,51 @@ function security_upload_root_dir(): string
 }
 
 /**
+ * Real write probe — is_writable() is unreliable on IIS/Plesk (NTFS ACLs).
+ */
+function security_probe_dir_writable(string $dir): bool
+{
+    if (!is_dir($dir)) {
+        return false;
+    }
+
+    $probe = $dir . DIRECTORY_SEPARATOR . '.write_probe_' . bin2hex(random_bytes(4));
+    $written = @file_put_contents($probe, 'ok', LOCK_EX);
+    if ($written === false) {
+        return false;
+    }
+
+    @unlink($probe);
+
+    return true;
+}
+
+/**
+ * Best-effort ACL fix for Windows IIS (Plesk). No-op on Linux/macOS.
+ */
+function security_try_fix_upload_permissions(string $dir): void
+{
+    if (DIRECTORY_SEPARATOR !== '\\' || !is_dir($dir)) {
+        return;
+    }
+
+    $real = realpath($dir);
+    if ($real === false || !function_exists('exec')) {
+        return;
+    }
+
+    $grants = ['IIS_IUSRS:(OI)(CI)M', 'IUSR:(OI)(CI)M'];
+    $pool = (string) ($_SERVER['APP_POOL_ID'] ?? getenv('APP_POOL_ID') ?: '');
+    if ($pool !== '') {
+        $grants[] = 'IIS AppPool\\' . $pool . ':(OI)(CI)M';
+    }
+
+    foreach ($grants as $grant) {
+        @exec('icacls ' . escapeshellarg($real) . ' /grant ' . escapeshellarg($grant) . ' 2>&1');
+    }
+}
+
+/**
  * Ensure uploads directory exists and is writable (creates on deploy if missing).
  *
  * @return array{ok: bool, path: string, error: string}
@@ -232,6 +277,11 @@ function security_ensure_upload_dir(string $subDir = ''): array
     $subDir = trim(str_replace(['\\', '/'], DIRECTORY_SEPARATOR, $subDir), DIRECTORY_SEPARATOR);
     $dir = $subDir === '' ? $base : $base . DIRECTORY_SEPARATOR . $subDir;
 
+    if (!is_dir($base)) {
+        @mkdir($base, 0775, true) || @mkdir($base, 0777, true);
+        security_try_fix_upload_permissions($base);
+    }
+
     if (!is_dir($dir)) {
         $created = @mkdir($dir, 0775, true);
         if (!$created) {
@@ -241,9 +291,10 @@ function security_ensure_upload_dir(string $subDir = ''): array
             return [
                 'ok'    => false,
                 'path'  => $dir,
-                'error' => "Cannot create uploads folder at {$dir}. Create it in Plesk File Manager and set permissions to 755 or 775.",
+                'error' => "Cannot create uploads folder at {$dir}. Create it in Plesk File Manager and grant Modify to IIS_IUSRS.",
             ];
         }
+        security_try_fix_upload_permissions($dir);
     }
 
     $indexFile = $dir . DIRECTORY_SEPARATOR . 'index.html';
@@ -251,17 +302,21 @@ function security_ensure_upload_dir(string $subDir = ''): array
         @file_put_contents($indexFile, "<!DOCTYPE html><title></title>\n");
     }
 
-    if (!is_writable($dir)) {
+    if (DIRECTORY_SEPARATOR !== '\\') {
         @chmod($dir, 0775);
-        @chmod($dir, 0777);
         clearstatcache(true, $dir);
     }
 
-    if (!is_writable($dir)) {
+    if (!security_probe_dir_writable($dir)) {
+        security_try_fix_upload_permissions($dir);
+        clearstatcache(true, $dir);
+    }
+
+    if (!security_probe_dir_writable($dir)) {
         return [
             'ok'    => false,
             'path'  => $dir,
-            'error' => "Uploads folder is not writable: {$dir}. In Plesk, set uploads permissions to 755/775 (Modify for IIS_IUSRS).",
+            'error' => "Uploads folder is not writable: {$dir}. In Plesk File Manager → uploads → Permissions, grant Modify to IIS_IUSRS (or run: php scripts/ensure-uploads-dir.php).",
         ];
     }
 

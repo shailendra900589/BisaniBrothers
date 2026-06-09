@@ -17,9 +17,11 @@ if [ -d storage/mail-outbox ] && [ ! -f storage/mail-outbox/.gitkeep ]; then
   touch storage/mail-outbox/.gitkeep
 fi
 
-chmod 755 storage storage/mail-outbox uploads uploads/resumes 2>/dev/null || true
+chmod 755 storage storage/mail-outbox uploads uploads/resumes uploads/marketing 2>/dev/null || true
 
 if command -v php >/dev/null 2>&1; then
+  echo "==> Ensuring uploads folders..."
+  php scripts/ensure-uploads-dir.php || echo "WARN: ensure-uploads-dir failed — set IIS_IUSRS Modify on uploads in Plesk"
   echo "==> Warming locale strings..."
   php scripts/warm-locale-cache.php || echo "WARN: warm-locale-cache failed"
   echo "==> Warming blog translations (all locales)..."

@@ -194,6 +194,13 @@ return [
         'faq3_q' => 'Where are your offices located?',
         'faq3_a' => 'We have offices in Mumbai, Delhi, and Lucknow, with operational teams across multiple states in India.',
     ],
+    'faqs' => [
+        'filter_all' => 'All',
+        'empty' => 'No FAQs available yet.',
+        'still_title' => 'Still have questions?',
+        'still_desc' => 'Our team is happy to help with your business requirements.',
+        'contact_btn' => 'Contact Us',
+    ],
     'careers' => [
         'hero_h1_a' => 'Build your career.',
         'hero_h1_b' => 'Grow at your pace.',

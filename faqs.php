@@ -65,7 +65,7 @@ include 'includes/header.php';
     <div class="max-w-4xl mx-auto px-4">
         <?php if ($categories): ?>
         <div class="flex flex-wrap gap-2 mb-10 justify-center">
-            <a href="faqs" class="px-4 py-2 rounded-full text-sm font-bold <?php echo $filterCat === '' ? 'bg-[#173978] text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-[#2fcaf0]'; ?>">All</a>
+            <a href="faqs" class="px-4 py-2 rounded-full text-sm font-bold <?php echo $filterCat === '' ? 'bg-[#173978] text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-[#2fcaf0]'; ?>"><?php echo page_te('filter_all'); ?></a>
             <?php foreach ($categories as $cat): ?>
             <a href="faqs?category=<?php echo urlencode($cat); ?>" class="px-4 py-2 rounded-full text-sm font-bold <?php echo $filterCat === $cat ? 'bg-[#173978] text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-[#2fcaf0]'; ?>"><?php echo htmlspecialchars($cat); ?></a>
             <?php endforeach; ?>
@@ -87,13 +87,13 @@ include 'includes/header.php';
             <?php endforeach; ?>
         </div>
         <?php else: ?>
-        <p class="text-center text-gray-500">No FAQs available yet.</p>
+        <p class="text-center text-gray-500"><?php echo page_te('empty'); ?></p>
         <?php endif; ?>
 
         <div class="mt-12 text-center bg-white rounded-2xl border border-gray-200 p-8">
-            <h2 class="text-xl font-bold text-[#173978] mb-2">Still have questions?</h2>
-            <p class="text-gray-500 mb-4">Our team is happy to help with your business requirements.</p>
-            <a href="contact" class="inline-flex items-center px-6 py-3 bg-[#173978] text-white font-bold rounded-lg hover:bg-[#2fcaf0] hover:text-[#173978] transition-colors">Contact Us <i class="fa-solid fa-arrow-right ml-2"></i></a>
+            <h2 class="text-xl font-bold text-[#173978] mb-2"><?php echo page_te('still_title'); ?></h2>
+            <p class="text-gray-500 mb-4"><?php echo page_te('still_desc'); ?></p>
+            <a href="contact" class="inline-flex items-center px-6 py-3 bg-[#173978] text-white font-bold rounded-lg hover:bg-[#2fcaf0] hover:text-[#173978] transition-colors"><?php echo page_te('contact_btn'); ?> <i class="fa-solid fa-arrow-right ml-2"></i></a>
         </div>
     </div>
 </section>
