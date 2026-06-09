@@ -4,16 +4,19 @@
  * Usage: php scripts/ensure-uploads-dir.php
  */
 $root = dirname(__DIR__);
-require_once $root . '/includes/security.php';
+require_once $root . '/includes/upload-storage.php';
 
 $subs = ['', 'resumes', 'marketing'];
 $failed = false;
 
+$active = upload_storage_active_root(true);
+echo 'Active storage: ' . ($active ?? 'NONE') . "\n";
+
 foreach ($subs as $sub) {
-    $result = security_ensure_upload_dir($sub);
+    $result = upload_storage_ensure_dir($sub);
     $label = $sub === '' ? 'uploads' : 'uploads/' . $sub;
     if ($result['ok']) {
-        echo "OK: {$label}\n";
+        echo "OK: {$label} @ {$result['path']}\n";
         continue;
     }
     echo "FAIL: {$label} — {$result['error']}\n";

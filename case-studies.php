@@ -45,7 +45,8 @@ include 'includes/header.php';
             <article class="bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-xl hover:border-[#2fcaf0] transition-all group">
                 <?php if (!empty($cs['image_path'])): ?>
                 <div class="aspect-video bg-gray-100 overflow-hidden">
-                    <img src="<?php echo htmlspecialchars(ltrim($cs['image_path'], '/')); ?>" alt="<?php echo htmlspecialchars($cs['title']); ?>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    <?php require_once __DIR__ . '/includes/upload-storage.php'; ?>
+                    <img src="<?php echo htmlspecialchars(upload_storage_public_url($cs['image_path'])); ?>" alt="<?php echo htmlspecialchars($cs['title']); ?>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                 </div>
                 <?php endif; ?>
                 <div class="p-8">

@@ -211,116 +211,34 @@ function security_safe_upload_name(string $originalName, string $prefix = ''): s
     return $prefix . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
 }
 
+require_once __DIR__ . '/upload-storage.php';
+
 function security_project_root(): string
 {
-    return dirname(__DIR__);
+    return upload_storage_project_root();
 }
 
 function security_upload_root_dir(): string
 {
-    return security_project_root() . DIRECTORY_SEPARATOR . 'uploads';
+    $active = upload_storage_active_root();
+
+    return $active ?? (security_project_root() . DIRECTORY_SEPARATOR . 'uploads');
 }
 
 /**
- * Real write probe — is_writable() is unreliable on IIS/Plesk (NTFS ACLs).
- */
-function security_probe_dir_writable(string $dir): bool
-{
-    if (!is_dir($dir)) {
-        return false;
-    }
-
-    $probe = $dir . DIRECTORY_SEPARATOR . '.write_probe_' . bin2hex(random_bytes(4));
-    $written = @file_put_contents($probe, 'ok', LOCK_EX);
-    if ($written === false) {
-        return false;
-    }
-
-    @unlink($probe);
-
-    return true;
-}
-
-/**
- * Best-effort ACL fix for Windows IIS (Plesk). No-op on Linux/macOS.
- */
-function security_try_fix_upload_permissions(string $dir): void
-{
-    if (DIRECTORY_SEPARATOR !== '\\' || !is_dir($dir)) {
-        return;
-    }
-
-    $real = realpath($dir);
-    if ($real === false || !function_exists('exec')) {
-        return;
-    }
-
-    $grants = ['IIS_IUSRS:(OI)(CI)M', 'IUSR:(OI)(CI)M'];
-    $pool = (string) ($_SERVER['APP_POOL_ID'] ?? getenv('APP_POOL_ID') ?: '');
-    if ($pool !== '') {
-        $grants[] = 'IIS AppPool\\' . $pool . ':(OI)(CI)M';
-    }
-
-    foreach ($grants as $grant) {
-        @exec('icacls ' . escapeshellarg($real) . ' /grant ' . escapeshellarg($grant) . ' 2>&1');
-    }
-}
-
-/**
- * Ensure uploads directory exists and is writable (creates on deploy if missing).
+ * Ensure uploads directory exists and is writable (primary or Plesk tmp fallback).
  *
  * @return array{ok: bool, path: string, error: string}
  */
 function security_ensure_upload_dir(string $subDir = ''): array
 {
-    $base = security_upload_root_dir();
-    $subDir = trim(str_replace(['\\', '/'], DIRECTORY_SEPARATOR, $subDir), DIRECTORY_SEPARATOR);
-    $dir = $subDir === '' ? $base : $base . DIRECTORY_SEPARATOR . $subDir;
+    $result = upload_storage_ensure_dir($subDir);
 
-    if (!is_dir($base)) {
-        @mkdir($base, 0775, true) || @mkdir($base, 0777, true);
-        security_try_fix_upload_permissions($base);
-    }
-
-    if (!is_dir($dir)) {
-        $created = @mkdir($dir, 0775, true);
-        if (!$created) {
-            $created = @mkdir($dir, 0777, true);
-        }
-        if (!$created && !is_dir($dir)) {
-            return [
-                'ok'    => false,
-                'path'  => $dir,
-                'error' => "Cannot create uploads folder at {$dir}. Create it in Plesk File Manager and grant Modify to IIS_IUSRS.",
-            ];
-        }
-        security_try_fix_upload_permissions($dir);
-    }
-
-    $indexFile = $dir . DIRECTORY_SEPARATOR . 'index.html';
-    if (!is_file($indexFile)) {
-        @file_put_contents($indexFile, "<!DOCTYPE html><title></title>\n");
-    }
-
-    if (DIRECTORY_SEPARATOR !== '\\') {
-        @chmod($dir, 0775);
-        clearstatcache(true, $dir);
-    }
-
-    if (!security_probe_dir_writable($dir)) {
-        security_try_fix_upload_permissions($dir);
-        clearstatcache(true, $dir);
-    }
-
-    if (!security_probe_dir_writable($dir)) {
-        return [
-            'ok'    => false,
-            'path'  => $dir,
-            'error' => "Uploads folder is not writable: {$dir}. In Plesk File Manager → uploads → Permissions, grant Modify to IIS_IUSRS (or run: php scripts/ensure-uploads-dir.php).",
-        ];
-    }
-
-    return ['ok' => true, 'path' => $dir, 'error' => ''];
+    return [
+        'ok'    => $result['ok'],
+        'path'  => $result['path'],
+        'error' => $result['error'],
+    ];
 }
 
 /**
@@ -349,11 +267,14 @@ function security_store_upload(array $file, string $subDir = '', array $allowedE
     $tmp = (string) ($file['tmp_name'] ?? '');
 
     if ($tmp !== '' && is_uploaded_file($tmp) && @move_uploaded_file($tmp, $targetPath)) {
+        upload_storage_mirror_to_primary($targetPath, $dbPath);
+
         return ['ok' => true, 'error' => '', 'path' => $targetPath, 'db_path' => $dbPath];
     }
 
     if ($tmp !== '' && is_readable($tmp) && @copy($tmp, $targetPath)) {
         @unlink($tmp);
+        upload_storage_mirror_to_primary($targetPath, $dbPath);
 
         return ['ok' => true, 'error' => '', 'path' => $targetPath, 'db_path' => $dbPath];
     }

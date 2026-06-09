@@ -141,8 +141,10 @@ function seo_absolute_image(?string $path, string $base_url): string
     if (preg_match('#^https?://#i', $path)) {
         return $path;
     }
-    $clean = ltrim(str_replace(['../', './'], '', $path), '/');
-    return rtrim($base_url, '/') . '/' . $clean;
+    require_once __DIR__ . '/upload-storage.php';
+    $clean = upload_storage_public_url($path);
+
+    return rtrim($base_url, '/') . '/' . ltrim($clean, '/');
 }
 
 function seo_strip_text(string $html, int $limit = 160): string

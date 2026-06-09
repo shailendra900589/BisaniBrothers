@@ -127,7 +127,8 @@ if (isset($pdo)) {
 
             <?php if (!empty($globalPopup['image_path'])): ?>
             <div class="w-full md:w-1/2 relative min-h-[250px] md:min-h-[400px]">
-                <img src="<?php echo htmlspecialchars($globalPopup['image_path']); ?>" class="absolute inset-0 w-full h-full object-cover">
+                <?php require_once __DIR__ . '/upload-storage.php'; ?>
+                <img src="<?php echo htmlspecialchars(upload_storage_public_url($globalPopup['image_path'])); ?>" class="absolute inset-0 w-full h-full object-cover">
                 
                 <div class="absolute inset-0 bg-gradient-to-t from-[#173978]/90 via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-white/5"></div>
                 

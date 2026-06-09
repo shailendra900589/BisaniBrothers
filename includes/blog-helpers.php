@@ -6,13 +6,14 @@ function blog_get_safe_path(?string $dbPath): string
     if (empty($dbPath)) {
         return $fallback;
     }
-    $path = ltrim(str_replace(['../', './'], '', $dbPath), '/');
-    $full = dirname(__DIR__) . '/' . $path;
-    if (!is_file($full)) {
+
+    require_once __DIR__ . '/upload-storage.php';
+    $public = upload_storage_public_url($dbPath);
+    if ($public === '' || upload_storage_resolve_file($dbPath) === null) {
         return $fallback;
     }
 
-    return $path;
+    return $public;
 }
 
 function blog_is_orphan(array $post): bool
