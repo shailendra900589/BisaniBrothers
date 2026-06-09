@@ -210,3 +210,108 @@ function security_safe_upload_name(string $originalName, string $prefix = ''): s
 
     return $prefix . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
 }
+
+function security_project_root(): string
+{
+    return dirname(__DIR__);
+}
+
+function security_upload_root_dir(): string
+{
+    return security_project_root() . DIRECTORY_SEPARATOR . 'uploads';
+}
+
+/**
+ * Ensure uploads directory exists and is writable (creates on deploy if missing).
+ *
+ * @return array{ok: bool, path: string, error: string}
+ */
+function security_ensure_upload_dir(string $subDir = ''): array
+{
+    $base = security_upload_root_dir();
+    $subDir = trim(str_replace(['\\', '/'], DIRECTORY_SEPARATOR, $subDir), DIRECTORY_SEPARATOR);
+    $dir = $subDir === '' ? $base : $base . DIRECTORY_SEPARATOR . $subDir;
+
+    if (!is_dir($dir)) {
+        $created = @mkdir($dir, 0775, true);
+        if (!$created) {
+            $created = @mkdir($dir, 0777, true);
+        }
+        if (!$created && !is_dir($dir)) {
+            return [
+                'ok'    => false,
+                'path'  => $dir,
+                'error' => "Cannot create uploads folder at {$dir}. Create it in Plesk File Manager and set permissions to 755 or 775.",
+            ];
+        }
+    }
+
+    $indexFile = $dir . DIRECTORY_SEPARATOR . 'index.html';
+    if (!is_file($indexFile)) {
+        @file_put_contents($indexFile, "<!DOCTYPE html><title></title>\n");
+    }
+
+    if (!is_writable($dir)) {
+        @chmod($dir, 0775);
+        @chmod($dir, 0777);
+        clearstatcache(true, $dir);
+    }
+
+    if (!is_writable($dir)) {
+        return [
+            'ok'    => false,
+            'path'  => $dir,
+            'error' => "Uploads folder is not writable: {$dir}. In Plesk, set uploads permissions to 755/775 (Modify for IIS_IUSRS).",
+        ];
+    }
+
+    return ['ok' => true, 'path' => $dir, 'error' => ''];
+}
+
+/**
+ * Store an uploaded file under /uploads/{subDir}.
+ *
+ * @param array<string, mixed> $file $_FILES entry
+ * @param string[] $allowedExtensions
+ * @return array{ok: bool, error: string, path: ?string, db_path: ?string}
+ */
+function security_store_upload(array $file, string $subDir = '', array $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'], int $maxBytes = 5242880): array
+{
+    $validation = security_validate_upload($file, $allowedExtensions, $maxBytes);
+    if ($validation !== null) {
+        return ['ok' => false, 'error' => $validation, 'path' => null, 'db_path' => null];
+    }
+
+    $ensure = security_ensure_upload_dir($subDir);
+    if (!$ensure['ok']) {
+        return ['ok' => false, 'error' => $ensure['error'], 'path' => null, 'db_path' => null];
+    }
+
+    $fileName = security_safe_upload_name((string) ($file['name'] ?? 'upload.bin'));
+    $targetPath = rtrim($ensure['path'], DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $fileName;
+    $subPath = trim(str_replace('\\', '/', $subDir), '/');
+    $dbPath = $subPath === '' ? 'uploads/' . $fileName : 'uploads/' . $subPath . '/' . $fileName;
+    $tmp = (string) ($file['tmp_name'] ?? '');
+
+    if ($tmp !== '' && is_uploaded_file($tmp) && @move_uploaded_file($tmp, $targetPath)) {
+        return ['ok' => true, 'error' => '', 'path' => $targetPath, 'db_path' => $dbPath];
+    }
+
+    if ($tmp !== '' && is_readable($tmp) && @copy($tmp, $targetPath)) {
+        @unlink($tmp);
+
+        return ['ok' => true, 'error' => '', 'path' => $targetPath, 'db_path' => $dbPath];
+    }
+
+    $phpError = error_get_last();
+    $detail = is_array($phpError) ? ($phpError['message'] ?? '') : '';
+
+    return [
+        'ok'      => false,
+        'error'   => 'Failed to save uploaded file.'
+            . ($detail !== '' ? ' ' . $detail : '')
+            . ' Folder: ' . $ensure['path'],
+        'path'    => null,
+        'db_path' => null,
+    ];
+}

@@ -74,49 +74,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Default to existing image
     $image_path = $_POST['existing_image'];
 
-    // --- FIXED UPLOAD LOGIC (ABSOLUTE PATHS) ---
     if (!empty($_FILES['image']['name'])) {
-        
-        // 1. Define Paths dynamically based on server root
-        // __DIR__ is ".../httpdocs/admin"
-        // dirname(__DIR__) becomes ".../httpdocs"
-        $rootPath = dirname(__DIR__); 
-        $uploadDir = $rootPath . '/uploads/'; 
-        
-        $fileName = time() . "_" . basename($_FILES['image']['name']);
-        $targetFilePath = $uploadDir . $fileName;
-        
-        // This is what gets saved to DB (relative for frontend)
-        $dbFilePath = "uploads/" . $fileName; 
-
-        // 2. Create Directory if missing
-        if (!is_dir($uploadDir)) {
-            // Try to create with full permissions
-            if (!mkdir($uploadDir, 0755, true)) {
-                $msg = "Error: Uploads folder missing and cannot be created. Create 'uploads' in httpdocs manually.";
-            }
-        }
-
-        // 3. Validate & Move
-        if (empty($msg)) {
-            $fileType = strtolower(pathinfo($targetFilePath, PATHINFO_EXTENSION));
-            $allowedTypes = array('jpg', 'jpeg', 'png', 'gif', 'webp');
-
-            if (in_array($fileType, $allowedTypes)) {
-                // Attempt Upload
-                if (move_uploaded_file($_FILES['image']['tmp_name'], $targetFilePath)) {
-                    // SUCCESS
-                    $image_path = $dbFilePath;
-                } else {
-                    // Detailed Error for Debugging
-                    $msg = "Error: Failed to move file. Check folder permissions (755 or 777) for 'uploads'.";
-                }
-            } else {
-                $msg = "Error: Only JPG, JPEG, PNG, GIF, & WEBP files are allowed.";
-            }
+        $upload = security_store_upload($_FILES['image'], '', ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+        if ($upload['ok']) {
+            $image_path = $upload['db_path'];
+        } else {
+            $msg = 'Error: ' . $upload['error'];
         }
     }
-    // -------------------------------------
 
     // Only save to DB if no upload error
     if (strpos($msg, 'Error') === false) {

@@ -14,8 +14,16 @@ lang/cache/**
 !lang/cache/blog-translations/**
 !lang/cache/replacements/
 !lang/cache/replacements/**
-uploads/**
+uploads/*
 !uploads/.htaccess
+!uploads/web.config
+!uploads/index.html
+!uploads/resumes/
+uploads/resumes/*
+!uploads/resumes/index.html
+!uploads/marketing/
+uploads/marketing/*
+!uploads/marketing/index.html
 
 # Database dumps (import manually; do not commit)
 bisanibrothers_2026.sql
