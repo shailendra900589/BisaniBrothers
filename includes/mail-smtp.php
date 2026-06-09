@@ -1,5 +1,41 @@
 <?php
 
+function mail_smtp_last_error(): string
+{
+    return trim((string) ($GLOBALS['_mail_smtp_last_error'] ?? ''));
+}
+
+function mail_smtp_last_response(): string
+{
+    return trim((string) ($GLOBALS['_mail_smtp_last_response'] ?? ''));
+}
+
+function mail_smtp_set_error(string $message): void
+{
+    $GLOBALS['_mail_smtp_last_error'] = $message;
+}
+
+function mail_smtp_stream_context(array $smtp): ?array
+{
+    $encryption = strtolower((string) ($smtp['encryption'] ?? 'tls'));
+    if ($encryption === 'none' || $encryption === '') {
+        return null;
+    }
+
+    $verify = ($smtp['verify_ssl'] ?? true) !== false;
+    $host = (string) ($smtp['host'] ?? '');
+
+    return stream_context_create([
+        'ssl' => [
+            'verify_peer'       => $verify,
+            'verify_peer_name'  => $verify,
+            'allow_self_signed' => !$verify,
+            'peer_name'         => $host,
+            'SNI_enabled'       => true,
+        ],
+    ]);
+}
+
 function mail_load_config(): array
 {
     static $config = null;
@@ -8,9 +44,12 @@ function mail_load_config(): array
     }
 
     $config = require __DIR__ . '/mail-config.php';
-    $local = __DIR__ . '/mail-config.local.php';
-    if (is_file($local)) {
-        $override = require $local;
+    foreach (['mail-config.local.php', 'mail-secrets.php'] as $file) {
+        $path = __DIR__ . '/' . $file;
+        if (!is_file($path)) {
+            continue;
+        }
+        $override = require $path;
         if (is_array($override)) {
             $config = array_replace_recursive($config, $override);
         }
@@ -37,8 +76,14 @@ function mail_smtp_cmd($socket, string $cmd, array $okCodes): bool
         fwrite($socket, $cmd . "\r\n");
     }
     $resp = mail_smtp_read($socket);
+    $GLOBALS['_mail_smtp_last_response'] = $resp;
     $code = (int) substr($resp, 0, 3);
-    return in_array($code, $okCodes, true);
+    if (!in_array($code, $okCodes, true)) {
+        mail_smtp_set_error(trim($resp) !== '' ? trim($resp) : 'SMTP command failed.');
+        return false;
+    }
+
+    return true;
 }
 
 function mail_smtp_encode_header(string $value): string
@@ -64,32 +109,44 @@ function mail_smtp_send(array $cfg, array $recipients, string $subject, string $
     $encryption = strtolower((string) ($smtp['encryption'] ?? 'tls'));
     $username  = trim((string) ($smtp['username'] ?? ''));
     $password  = (string) ($smtp['password'] ?? '');
+    $label     = (string) ($smtp['label'] ?? $host);
 
     $recipients = array_values(array_unique(array_filter(array_map(
         static fn($e) => filter_var(trim((string) $e), FILTER_VALIDATE_EMAIL) ?: null,
         $recipients
     ))));
     if ($recipients === []) {
+        mail_smtp_set_error('No valid recipient email addresses.');
         return false;
     }
 
-    $remote = ($encryption === 'ssl' ? 'ssl://' : 'tcp://') . $host . ':' . $port;
-    $socket = @stream_socket_client($remote, $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT);
+    mail_smtp_set_error('');
+    $context = mail_smtp_stream_context($smtp);
+    $scheme = ($encryption === 'ssl') ? 'ssl://' : 'tcp://';
+    $remote = $scheme . $host . ':' . $port;
+    $socket = @stream_socket_client($remote, $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, $context);
     if (!$socket) {
-        error_log("SMTP connect failed ({$remote}): {$errstr} ({$errno})");
+        $msg = "Connect failed ({$label} {$remote}): {$errstr} ({$errno})";
+        mail_smtp_set_error($msg);
+        error_log('SMTP ' . $msg);
         return false;
     }
 
     stream_set_timeout($socket, $timeout);
 
-    if (!mail_smtp_read($socket)) {
+    $banner = mail_smtp_read($socket);
+    if ($banner === '') {
+        mail_smtp_set_error("No SMTP greeting from {$label} ({$remote}).");
         fclose($socket);
         return false;
     }
 
-    $ehloHost = $_SERVER['SERVER_NAME'] ?? 'bisanibrother.com';
+    $ehloHost = preg_replace('/[^a-zA-Z0-9.\-]/', '', (string) ($_SERVER['SERVER_NAME'] ?? 'bisanibrother.com')) ?: 'bisanibrother.com';
     if (!mail_smtp_cmd($socket, 'EHLO ' . $ehloHost, [250])) {
-        mail_smtp_cmd($socket, 'HELO ' . $ehloHost, [250]);
+        if (!mail_smtp_cmd($socket, 'HELO ' . $ehloHost, [250])) {
+            fclose($socket);
+            return false;
+        }
     }
 
     if ($encryption === 'tls') {
@@ -102,7 +159,8 @@ function mail_smtp_send(array $cfg, array $recipients, string $subject, string $
             $crypto |= STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT;
         }
         if (!@stream_socket_enable_crypto($socket, true, $crypto)) {
-            error_log('SMTP STARTTLS handshake failed.');
+            mail_smtp_set_error("STARTTLS handshake failed ({$label}).");
+            error_log('SMTP STARTTLS handshake failed for ' . $label);
             fclose($socket);
             return false;
         }

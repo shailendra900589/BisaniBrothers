@@ -12,6 +12,9 @@
  *
  * Optional: create includes/mail-config.local.php to override SMTP (e.g. App Password for local testing).
  */
+$smtpUser = getenv('BISANI_SMTP_USER') ?: '';
+$smtpPass = getenv('BISANI_SMTP_PASS') ?: '';
+
 return [
     'from_email'  => 'marketing@bisanibrother.com',
     'from_name'   => 'Bisani Brothers Website',
@@ -23,8 +26,8 @@ return [
         'host'       => 'smtp-relay.gmail.com',
         'port'       => 587,
         'encryption' => 'tls',
-        'username'   => '',
-        'password'   => '',
-        'timeout'    => 12,
+        'username'   => $smtpUser,
+        'password'   => $smtpPass,
+        'timeout'    => 15,
     ],
 ];

@@ -98,11 +98,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $ok = marketing_send_to_recipient($testSubject, $bodyHtml, $testEmail);
         $meta = mail_send_meta();
 
+        $failMsg = $meta['message'] ?? mail_smtp_last_error();
+        if (!$ok && $failMsg === '') {
+            $failMsg = 'Could not send. Add server IP to Google SMTP relay, or create includes/mail-config.local.php with Gmail App Password.';
+        }
+
         echo json_encode([
             'ok'      => $ok,
             'message' => $ok
                 ? ($meta['message'] ?? ('Test email sent to ' . $testEmail))
-                : ($meta['message'] ?? 'Could not send test email. Verify Google SMTP relay on live server.'),
+                : $failMsg,
             'method'  => $meta['method'] ?? '',
             'outbox'  => $meta['path'] ?? null,
         ]);
@@ -224,6 +229,10 @@ $isLocalMail = mail_is_local_env();
             <strong>Localhost mode:</strong> Google SMTP relay does not work on XAMPP.
             Test emails are saved to <a href="mail-outbox.php" class="font-bold underline">Mail Outbox</a> so you can preview them.
             On live server, real emails send automatically.
+        </div>
+        <?php elseif (!$isLocalMail && $tab === 'compose'): ?>
+        <div id="smtp-status-banner" class="mb-4 p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700">
+            <i class="fa-solid fa-spinner fa-spin mr-1"></i> Checking email server (SMTP)…
         </div>
         <?php endif; ?>
 
@@ -419,6 +428,30 @@ window.BB_CSRF_TOKEN = <?php echo json_encode(security_csrf_token(), JSON_HEX_TA
 window.BB_MARKETING_PREVIEW_WRAP = function(body, email) {
     return <?php echo json_encode(marketing_wrap_email('__BODY__', 'preview@bisanibrother.com'), JSON_HEX_TAG); ?>.replace('__BODY__', body);
 };
+<?php if (!$isLocalMail && $tab === 'compose'): ?>
+fetch('mail-diagnose.php', { credentials: 'same-origin' })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+        var el = document.getElementById('smtp-status-banner');
+        if (!el) return;
+        if (data.ok && data.working) {
+            el.className = 'mb-4 p-4 bg-green-50 border border-green-200 rounded-xl text-sm text-green-800';
+            el.innerHTML = '<i class="fa-solid fa-circle-check mr-1"></i><strong>SMTP ready:</strong> ' +
+                (data.working.label || 'connected') + ' (' + (data.working.host || '') + ':' + (data.working.port || '') + ')';
+            return;
+        }
+        el.className = 'mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-800';
+        var hint = data.has_auth
+            ? 'SMTP auth is configured but all routes failed.'
+            : 'No SMTP auth — add Google relay IP or create <code class="text-xs">includes/mail-config.local.php</code> with App Password.';
+        el.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i><strong>SMTP not working.</strong> ' + hint +
+            ' <a href="mail-diagnose.php" target="_blank" class="font-bold underline ml-1">View diagnosis</a>';
+    })
+    .catch(function () {
+        var el = document.getElementById('smtp-status-banner');
+        if (el) el.textContent = 'Could not check SMTP status.';
+    });
+<?php endif; ?>
 </script>
 <?php bb_ckeditor_admin_scripts('js/marketing-editor.js'); ?>
 </body>

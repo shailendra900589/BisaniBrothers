@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/mail-smtp.php';
 require_once __DIR__ . '/mail-local.php';
+require_once __DIR__ . '/mail-profiles.php';
 
 function mail_send(string|array $to, string $subject, string $bodyHtml, ?string $replyTo = null, array $extraHeaders = []): bool
 {
@@ -20,10 +21,18 @@ function mail_send(string|array $to, string $subject, string $bodyHtml, ?string 
     }
 
     if (!$isLocal || $hasSmtpAuth) {
-        if (mail_smtp_send($cfg, $recipients, $subject, $bodyHtml, $replyTo, $extraHeaders)) {
-            mail_set_meta('smtp', 'Email sent via SMTP (' . ($cfg['smtp']['host'] ?? 'relay') . ').');
-            return true;
+        $errors = [];
+        foreach (mail_smtp_profiles($cfg) as $profile) {
+            $tryCfg = $cfg;
+            $tryCfg['smtp'] = array_merge($cfg['smtp'] ?? [], $profile);
+            if (mail_smtp_send($tryCfg, $recipients, $subject, $bodyHtml, $replyTo, $extraHeaders)) {
+                $label = (string) ($profile['label'] ?? $tryCfg['smtp']['host'] ?? 'smtp');
+                mail_set_meta('smtp', 'Email sent via ' . $label . ' (' . ($tryCfg['smtp']['host'] ?? '') . ').');
+                return true;
+            }
+            $errors[] = ($profile['label'] ?? 'smtp') . ': ' . mail_smtp_last_error();
         }
+        error_log('SMTP all profiles failed: ' . implode(' | ', $errors));
     }
 
     if ($isLocal && $hasSmtpAuth) {
@@ -48,10 +57,42 @@ function mail_send(string|array $to, string $subject, string $bodyHtml, ?string 
         return true;
     }
 
+    $smtpErr = mail_smtp_last_error();
     mail_set_meta('failed', $isLocal
         ? 'Could not send. Check storage/mail-outbox folder permissions.'
-        : 'Could not send. Verify Google SMTP relay on live server.');
+        : ($smtpErr !== ''
+            ? 'Could not send: ' . $smtpErr
+            : 'Could not send. Add server IP to Google SMTP relay, set BISANI_SMTP_USER/PASS in Plesk, or enable Plesk mail on port 25.'));
     return false;
+}
+
+/**
+ * Test each SMTP profile (admin diagnostics).
+ *
+ * @return array<int, array{label: string, ok: bool, error: string}>
+ */
+function mail_diagnose_smtp(): array
+{
+    $cfg = mail_load_config();
+    $results = [];
+    foreach (mail_smtp_profiles($cfg) as $profile) {
+        $tryCfg = $cfg;
+        $tryCfg['smtp'] = array_merge($cfg['smtp'] ?? [], $profile);
+        $label = (string) ($profile['label'] ?? 'smtp');
+        $ok = mail_smtp_send($tryCfg, [$cfg['from_email'] ?? 'marketing@bisanibrother.com'], 'SMTP Test', '<p>Bisani Brothers SMTP diagnostic.</p>');
+        $results[] = [
+            'label' => $label,
+            'host'  => (string) ($tryCfg['smtp']['host'] ?? ''),
+            'port'  => (int) ($tryCfg['smtp']['port'] ?? 0),
+            'ok'    => $ok,
+            'error' => $ok ? '' : mail_smtp_last_error(),
+        ];
+        if ($ok) {
+            break;
+        }
+    }
+
+    return $results;
 }
 
 function mail_enquiry_notification(string $type, array $data): void

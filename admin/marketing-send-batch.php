@@ -62,6 +62,8 @@ $failed = (int) $campaign['failed_count'];
 $batchSent = 0;
 $batchFailed = 0;
 
+$lastMailError = '';
+
 foreach ($batch as $row) {
     $email = $row['email'];
     if (marketing_send_to_recipient($campaign['subject'], $campaign['body_html'], $email)) {
@@ -72,6 +74,8 @@ foreach ($batch as $row) {
         $failed++;
         $batchFailed++;
         marketing_log_recipient($pdo, $campaignId, $email, 'failed');
+        $meta = mail_send_meta();
+        $lastMailError = $meta['message'] ?? mail_smtp_last_error();
     }
     usleep(150000);
 }
@@ -93,4 +97,5 @@ echo json_encode([
     'next_offset'  => $nextOffset,
     'done'         => $done,
     'status'       => $status,
+    'last_error'   => $lastMailError,
 ]);

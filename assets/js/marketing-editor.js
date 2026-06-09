@@ -189,9 +189,15 @@
             }
             if (btn) {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i> Campaign Sent';
+                if (data.total_failed > 0 && data.total_sent === 0) {
+                    btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-2"></i> Send Failed';
+                    var err = data.last_error || 'All recipients failed. Check SMTP status on compose tab.';
+                    alert('Campaign failed to send.\n\n' + err);
+                } else {
+                    btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i> Campaign Sent';
+                    setTimeout(function () { window.location.href = 'marketing-campaigns.php?tab=history&msg=Campaign+sent+successfully'; }, 1200);
+                }
             }
-            setTimeout(function () { window.location.href = 'marketing-campaigns.php?tab=history&msg=Campaign+sent+successfully'; }, 1200);
             return data;
         });
     }

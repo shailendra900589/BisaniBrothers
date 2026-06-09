@@ -4,6 +4,7 @@ package-lock.json
 
 # Local secrets & overrides
 includes/mail-config.local.php
+includes/mail-secrets.php
 db.local.php
 
 # Generated / runtime
