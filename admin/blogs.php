@@ -310,10 +310,14 @@ if (!empty($edit_data['slug'])) {
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Cover Image</label>
-                                <input type="file" name="image" accept="image/*" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
-                                <?php if(!empty($edit_data['image_path'])): ?>
-                                    <p class="text-xs text-green-600 mt-1"><i class="fa-solid fa-check"></i> Image currently uploaded</p>
-                                <?php endif; ?>
+                                <input type="file" id="blog-cover-image" name="image" accept="image/jpeg,image/png,image/gif,image/webp" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                                <p id="cover-image-status" class="text-xs mt-2 <?php echo !empty($edit_data['image_path']) ? 'text-green-600' : 'text-slate-400'; ?>">
+                                    <?php if (!empty($edit_data['image_path'])): ?>
+                                        <i class="fa-solid fa-check"></i> Cover image saved
+                                    <?php else: ?>
+                                        Select an image — it uploads automatically before you save the article.
+                                    <?php endif; ?>
+                                </p>
                             </div>
                         </div>
 
@@ -470,8 +474,57 @@ if (!empty($edit_data['slug'])) {
                 window.bbSyncBlogEditor();
             }
             serializeFaq();
+            if (window.bbCoverImageUploading) {
+                alert('Please wait — cover image is still uploading.');
+                return false;
+            }
             return true;
         }
+
+        (function () {
+            const input = document.getElementById('blog-cover-image');
+            const status = document.getElementById('cover-image-status');
+            const existing = document.querySelector('input[name="existing_image"]');
+            const csrf = document.querySelector('input[name="_csrf"]');
+            if (!input || !status || !existing || !csrf) {
+                return;
+            }
+
+            input.addEventListener('change', function () {
+                const file = input.files && input.files[0];
+                if (!file) {
+                    return;
+                }
+
+                window.bbCoverImageUploading = true;
+                status.className = 'text-xs mt-2 text-blue-600';
+                status.textContent = 'Uploading cover image…';
+
+                const fd = new FormData();
+                fd.append('image', file);
+                fd.append('_csrf', csrf.value);
+
+                fetch('upload-blog-image.php', { method: 'POST', body: fd, credentials: 'same-origin' })
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        window.bbCoverImageUploading = false;
+                        if (data.ok && data.path) {
+                            existing.value = data.path;
+                            input.value = '';
+                            status.className = 'text-xs mt-2 text-green-600';
+                            status.innerHTML = '<i class="fa-solid fa-check"></i> Cover image uploaded — save the article to apply.';
+                            return;
+                        }
+                        status.className = 'text-xs mt-2 text-red-600';
+                        status.textContent = data.error || 'Upload failed. Try a smaller JPG/WebP image.';
+                    })
+                    .catch(function () {
+                        window.bbCoverImageUploading = false;
+                        status.className = 'text-xs mt-2 text-red-600';
+                        status.textContent = 'Upload failed. Check your connection and try again.';
+                    });
+            });
+        })();
 
         function copyPostLink(url) {
             if (!url) return;

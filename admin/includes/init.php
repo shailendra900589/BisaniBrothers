@@ -5,6 +5,7 @@
 require_once dirname(__DIR__, 2) . '/includes/security.php';
 
 security_bootstrap();
+security_prepare_upload_environment();
 
 if (!security_admin_logged_in()) {
     header('Location: login.php');

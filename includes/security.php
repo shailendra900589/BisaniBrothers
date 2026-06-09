@@ -177,6 +177,70 @@ function security_sanitize_rich_html(string $html): string
     return trim($html);
 }
 
+function security_upload_ini_limit(string $key): string
+{
+    $val = ini_get($key);
+    return is_string($val) && $val !== '' ? $val : 'unknown';
+}
+
+function security_upload_error_message(int $code): string
+{
+    $uploadMax = security_upload_ini_limit('upload_max_filesize');
+    $postMax = security_upload_ini_limit('post_max_size');
+
+    return match ($code) {
+        UPLOAD_ERR_INI_SIZE  => "Image exceeds server upload limit ({$uploadMax}). Use a smaller JPG/WebP or raise upload_max_filesize in Plesk PHP settings.",
+        UPLOAD_ERR_FORM_SIZE => 'Image exceeds the form size limit.',
+        UPLOAD_ERR_PARTIAL   => 'Upload was interrupted. Please try again.',
+        UPLOAD_ERR_NO_TMP_DIR => 'Server temp folder is missing. Set upload_tmp_dir to the vhost tmp folder in Plesk PHP settings.',
+        UPLOAD_ERR_CANT_WRITE => 'Server could not write the temp file. Grant IIS_IUSRS Modify on the PHP temp/upload folder.',
+        UPLOAD_ERR_EXTENSION => 'Upload blocked by a PHP extension on the server.',
+        default              => "File upload failed (code {$code}). Server limits: upload_max_filesize={$uploadMax}, post_max_size={$postMax}.",
+    };
+}
+
+function security_prepare_upload_environment(): void
+{
+    static $done = false;
+    if ($done) {
+        return;
+    }
+    $done = true;
+
+    $candidates = [];
+    $httpdocs = security_project_root();
+    $vhost = dirname($httpdocs);
+    $candidates[] = $vhost . DIRECTORY_SEPARATOR . 'tmp';
+    $candidates[] = sys_get_temp_dir();
+    if (DIRECTORY_SEPARATOR === '\\') {
+        $candidates[] = 'C:\\Windows\\Temp';
+    }
+
+    $webConfig = $httpdocs . DIRECTORY_SEPARATOR . 'web.config';
+    if (is_file($webConfig)) {
+        $xml = @file_get_contents($webConfig);
+        if (is_string($xml) && preg_match('/tempDirectory="([^"]+)"/i', $xml, $m)) {
+            $candidates[] = rtrim(str_replace('/', DIRECTORY_SEPARATOR, $m[1]), DIRECTORY_SEPARATOR);
+        }
+    }
+
+    foreach (array_unique($candidates) as $tmp) {
+        if ($tmp === '') {
+            continue;
+        }
+        if (!is_dir($tmp)) {
+            @mkdir($tmp, 0775, true);
+        }
+        if (!is_dir($tmp) || !upload_storage_probe_dir_writable($tmp)) {
+            upload_storage_try_fix_permissions($tmp);
+        }
+        if (is_dir($tmp) && upload_storage_probe_dir_writable($tmp)) {
+            @ini_set('upload_tmp_dir', $tmp);
+            break;
+        }
+    }
+}
+
 /**
  * @param array<string, mixed> $file $_FILES entry
  * @param string[] $allowedExtensions lowercase, no dot
@@ -187,17 +251,29 @@ function security_validate_upload(array $file, array $allowedExtensions, int $ma
         return null;
     }
 
-    if (($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
-        return 'File upload failed.';
+    $name = (string) ($file['name'] ?? '');
+    $error = (int) ($file['error'] ?? UPLOAD_ERR_OK);
+
+    if ($name !== '' && $error === UPLOAD_ERR_OK) {
+        $tmp = (string) ($file['tmp_name'] ?? '');
+        if ($tmp === '' || !is_uploaded_file($tmp)) {
+            $postMax = security_upload_ini_limit('post_max_size');
+            return "Upload did not reach the server. The article may exceed post_max_size ({$postMax}). Save the cover image separately using the auto-upload, or use a smaller image.";
+        }
+    }
+
+    if ($error !== UPLOAD_ERR_OK) {
+        return security_upload_error_message($error);
     }
 
     if (($file['size'] ?? 0) > $maxBytes) {
-        return 'File is too large.';
+        $mb = (int) round($maxBytes / 1048576);
+        return "File is too large (max {$mb} MB).";
     }
 
-    $ext = strtolower(pathinfo((string) ($file['name'] ?? ''), PATHINFO_EXTENSION));
+    $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
     if ($ext === '' || !in_array($ext, $allowedExtensions, true)) {
-        return 'File type not allowed.';
+        return 'File type not allowed. Use JPG, PNG, GIF, or WebP.';
     }
 
     return null;
@@ -248,8 +324,9 @@ function security_ensure_upload_dir(string $subDir = ''): array
  * @param string[] $allowedExtensions
  * @return array{ok: bool, error: string, path: ?string, db_path: ?string}
  */
-function security_store_upload(array $file, string $subDir = '', array $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'], int $maxBytes = 5242880): array
+function security_store_upload(array $file, string $subDir = '', array $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'], int $maxBytes = 10485760): array
 {
+    security_prepare_upload_environment();
     $validation = security_validate_upload($file, $allowedExtensions, $maxBytes);
     if ($validation !== null) {
         return ['ok' => false, 'error' => $validation, 'path' => null, 'db_path' => null];
