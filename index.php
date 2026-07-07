@@ -533,6 +533,7 @@ include 'includes/header.php';
                 <p><?php echo htmlspecialchars(t('index.seo_section_p1')); ?></p>
                 <p><?php echo htmlspecialchars(t('index.seo_section_p2')); ?></p>
                 <p><?php echo htmlspecialchars(t('index.seo_section_p3')); ?></p>
+                <p><?php echo htmlspecialchars(t('index.seo_section_p4')); ?></p>
             </div>
         </div>
     </section>

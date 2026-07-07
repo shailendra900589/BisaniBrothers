@@ -34,6 +34,22 @@ return [
         'why_accountability_d'=> 'Complete ownership of execution, ensuring results are delivered.',
         'why_closing'         => 'By acting as an extension of your sales organization, we ensure that every opportunity is converted into tangible growth, helping your business reach new markets, onboard more customers, and deliver consistent results.',
         'form_build_title'    => 'Let\'s Build Your Sales Engine',
+        'eeat_title'              => 'Experience, Expertise & Trust — Bisani Brothers',
+        'eeat_subtitle'           => 'A registered pan-India offline service provider with a measurable on-ground track record',
+        'eeat_experience_title'   => 'Experience',
+        'eeat_experience_text'    => '10+ years of field execution across FinTech, BFSI, retail, and allied sectors. 150+ client engagements, 400,000+ retail outlets mapped, and 2,100+ professionals deployed nationwide — with outcomes you can review through case studies and structured MIS reporting.',
+        'eeat_expertise_title'    => 'Expertise',
+        'eeat_expertise_text'     => 'Our teams deliver Sales And Service Support, Staffing Services, Feet on Street Services, Gig Services, Third Party Payroll Services, BTL ATL Field Force Services, Brand Promotion Activity, B2B and B2C Services, EV Support Services, Verification Services, and Financial Services Provider support — as integrated offline and online services.',
+        'eeat_authority_title'    => 'Authoritativeness',
+        'eeat_authority_text'     => 'Bisani Brothers Private Limited is headquartered in Lucknow with operations in Mumbai and Gurugram. Founded by Mr. Ashish Bisani, we work as an extension of client sales and operations teams with documented processes, compliance-led execution, and transparent reporting.',
+        'eeat_trust_title'        => 'Trustworthiness',
+        'eeat_trust_text'         => 'Registered company identity, published privacy and terms policies, verified contact channels (+91-522-4530208, contact@bisanibrother.com), and ethical field protocols support confident, long-term partnerships.',
+        'eeat_learn_more'         => 'Explore our services',
+        'eeat_case_studies'       => 'View case studies',
+        'eeat_contact'            => 'Contact our team',
+    ],
+    'index' => [
+        'eeat_keywords_p' => 'As a leading offline service provider, Bisani Brothers combines offline and online services — sales and service support, staffing, BTL ATL field force, and EV support — so businesses scale with accountable, measurable execution.',
     ],
     'sales-growth' => [
         'hero_h1_a'    => 'Sales and Service Support —',
@@ -58,6 +74,7 @@ return [
         'seo_b2b_title' => 'B2B and B2C Services',
         'seo_b2b_p1' => 'Bisani Brothers executes structured sales and service support for both B2B and B2C channels across India. For B2B engagements, we onboard merchants, distributors, and channel partners with disciplined field processes and account follow-up.',
         'seo_b2b_p2' => 'For B2C programs, we drive customer acquisition, activation, and retention through trained teams, call support, and measurable conversion tracking — giving you consistent performance across business models.',
+        'eeat_keywords_p' => 'Our Sales And Service Support covers B2B and B2C services with the same process discipline — merchant onboarding, telesales follow-up, and blended offline and online services that scale across regions.',
     ],
     'survey-market-research' => [
         'hero_h1_a' => 'Understanding Markets.',
@@ -76,6 +93,10 @@ return [
         'd3' => 'Product feedback and sampling studies',
         'd4' => 'Data collection with structured reporting',
         'form_build_title' => 'Turn Data into Decisions',
+        'seo_field_title' => 'On-Ground Field Research Execution',
+        'seo_field_p1' => 'As an offline service provider for survey and market research, we deploy trained feet-on-street teams to collect structured consumer and merchant data across cities and territories. Field associates follow defined questionnaires, geo-tagging, and quality checks so insights reflect real on-ground conditions.',
+        'seo_field_p2' => 'Whether you need pilot-market validation or nationwide sampling, our offline and online services coordination keeps data collection consistent, auditable, and aligned to your research objectives.',
+        'eeat_keywords_p' => 'Survey and market research projects rely on our feet-on-street data collection — an offline service provider capability that validates desk assumptions with structured, on-ground insights across India.',
     ],
     'staffing-solutions' => [
         'hero_h1_a' => 'Staffing Services & Feet on Street Workforce,',
@@ -111,6 +132,7 @@ return [
         'faq_a3' => 'Yes. We offer flexible gig and on-demand workforce models for seasonal campaigns, product launches, and short-term expansion needs. Teams can be scaled up or down quickly while maintaining quality and accountability standards.',
         'faq_q4' => 'Do you handle third party payroll services?',
         'faq_a4' => 'Yes. Bisani Brothers supports third-party payroll management for outsourced field and operational staff, including salary processing, compliance documentation, and coordination with statutory requirements so your teams stay deployment-ready without admin burden.',
+        'eeat_keywords_p' => 'From Staffing Services and Feet on Street Services to Gig Services and Third Party Payroll Services, we deploy trained field teams with centralized coordination — so your workforce scales without losing visibility or quality.',
     ],
     'btl-atl' => [
         'hero_h1_a' => 'BTL ATL Field Force Services —',
@@ -132,6 +154,7 @@ return [
         'seo_brand_title' => 'Brand Promotion Activity',
         'seo_brand_p1' => 'Bisani Brothers plans and executes brand promotion activity that puts your product in front of the right audience — at retail counters, high-footfall locations, events, and community touchpoints. Our field teams manage sampling, demonstrations, lead capture, and on-the-spot engagement while following brand guidelines and campaign checklists.',
         'seo_brand_p2' => 'Every activation is measured with structured reporting so you can evaluate reach, interaction quality, and sales impact.',
+        'eeat_keywords_p' => 'Our BTL ATL Field Force Services teams plan and run brand promotion activity at retail counters, events, and high-footfall locations — with structured reporting that ties on-ground engagement to measurable outcomes.',
     ],
     'lending-collection' => [
         'hero_h1_a' => 'Financial Services Provider —',
@@ -150,6 +173,10 @@ return [
         'd3' => 'Field and tele-collections assistance',
         'd4' => 'Structured reporting and compliance-led execution',
         'form_build_title' => 'Discuss Your Lending Support Needs',
+        'seo_financial_title' => 'Financial Services Provider Support',
+        'seo_financial_p1' => 'Bisani Brothers acts as an execution partner for NBFCs, FinTech lenders, and financial institutions — not as a lender ourselves. As a financial services provider support team, we handle lending product sales, borrower communication, and compliant collections through trained field and call-center professionals.',
+        'seo_financial_p2' => 'Structured reporting, ethical engagement protocols, and territory-wise performance tracking help financial partners scale outreach while maintaining trust and regulatory alignment.',
+        'eeat_keywords_p' => 'As a financial services provider execution partner for NBFCs and FinTech, we support lending sales and collections with compliant field and call-center teams — delivering responsibly on your behalf.',
     ],
     'ev-infrastructure' => [
         'hero_h1_a' => 'EV Support Services —',
@@ -172,6 +199,7 @@ return [
         'seo_verify_title' => 'Verification Services',
         'seo_verify_p1' => 'Beyond location scouting, our verification services validate site readiness, partner credentials, and on-ground conditions before installation proceeds. Field teams confirm accessibility, power availability, documentation, and compliance checkpoints, reducing delays during charger deployment.',
         'seo_verify_p2' => 'Structured verification reports give EV infrastructure companies confidence that each site meets operational and safety standards before rollout investment is committed.',
+        'eeat_keywords_p' => 'Our EV Support Services combine location scouting, partner onboarding, and Verification Services — validating site readiness and credentials before charger installation so rollout teams move faster with fewer delays.',
     ],
     'about' => [
         'hero_h1_a' => 'Get the Taste of',
@@ -192,6 +220,7 @@ return [
         'cta_desc' => 'If you\'re looking to partner with a team that values ownership, execution, and long-term thinking, we\'d be glad to start a conversation.',
         'cta_partner' => 'Partner With Us',
         'cta_careers' => 'Join Our Team',
+        'eeat_keywords_p' => 'Bisani Brothers Private Limited has built long-term partnerships through verified execution — 2,100+ people engaged, offices in Lucknow, Mumbai, and Gurugram, and founder-led accountability you can speak with directly.',
     ],
     'contact' => [
         'hero_h1_a' => 'Let\'s Start a',
@@ -219,6 +248,7 @@ return [
         'faq2_a_after' => 'if you are looking for flexible work.',
         'faq3_q' => 'Where are your offices located?',
         'faq3_a' => 'We have offices in Mumbai, Delhi, and Lucknow, with operational teams across multiple states in India.',
+        'eeat_keywords_p' => 'Contact Bisani Brothers for Staffing Services, Sales And Service Support, BTL ATL Field Force Services, or EV Support Services — our Lucknow headquarters and listed phone and email channels connect you to the right execution team.',
     ],
     'faqs' => [
         'filter_all' => 'All',
@@ -226,6 +256,7 @@ return [
         'still_title' => 'Still have questions?',
         'still_desc' => 'Our team is happy to help with your business requirements.',
         'contact_btn' => 'Contact Us',
+        'eeat_keywords_p' => 'Common questions about our offline and online services — staffing, sales execution, brand promotion activity, and verification services — are answered here by the Bisani Brothers operations team.',
     ],
     'careers' => [
         'hero_h1_a' => 'Build your career.',
@@ -236,17 +267,20 @@ return [
         'apply_now' => 'Apply Now',
         'view_details' => 'View Details',
         'no_jobs' => 'No open positions at the moment. Check back soon or send your resume to hr@bisanibrother.com',
+        'eeat_keywords_p' => 'Bisani Brothers employs 2,100+ field and operations professionals across India — a registered offline service provider where careers in sales, staffing, and on-ground execution are built on training, transparency, and growth.',
     ],
     'case-studies' => [
         'hero_title' => 'Client Success Stories',
         'hero_desc' => 'Real outcomes from sales execution, staffing, and field operations across India',
         'read_more' => 'Read case study',
         'empty' => 'Case studies coming soon.',
+        'eeat_keywords_p' => 'Client case studies document real outcomes from Sales And Service Support, Staffing Services, BTL ATL Field Force Services, and EV Support Services — evidence of experience you can evaluate before partnering with us.',
     ],
     'industries' => [
         'hero_title' => 'Industries We Serve',
         'hero_desc' => 'Specialized on-ground execution for high-growth sectors across India',
         'explore' => 'Explore',
+        'eeat_keywords_p' => 'Across FinTech, BFSI, retail, education, and agritech, Bisani Brothers acts as an offline service provider — deploying sales, staffing, and brand promotion activity teams tailored to each industry\'s compliance and execution needs.',
     ],
     'blog' => [
         'hero_title' => 'News & Knowledge Hub',
@@ -264,7 +298,7 @@ return [
         'written_by' => 'Written by',
         'author_badge' => 'Business Insights · India',
         'author_name' => 'Bisani Brothers Editorial Team',
-        'author_bio' => 'Expert insights on FinTech, staffing, sales growth, and business execution across India.',
+        'author_bio' => 'Expert insights from Bisani Brothers on FinTech, Staffing Services, Sales And Service Support, BTL ATL field force, and on-ground business execution across India.',
         'in_this_article' => 'In this article',
         'faq_title' => 'Frequently Asked Questions',
         'faq_sub' => 'Quick answers about this topic',
@@ -278,6 +312,7 @@ return [
         'read_more_about' => 'Read more about {title}',
         'view_category_articles' => 'View all {category} articles',
         'browse_tagged' => 'Browse articles tagged {tag}',
+        'eeat_keywords_p' => 'Articles published by the Bisani Brothers Editorial Team draw on 10+ years of field execution experience across staffing, sales, BTL activations, and financial services support — practical guidance for businesses scaling in India.',
     ],
     'partner-with-us' => [
         'hero_title' => 'Partner With Us',
@@ -317,6 +352,7 @@ return [
         'form_apply' => 'Apply Now',
         'success_title' => 'Application Received!',
         'success_desc' => 'We have received your details in our Growth Partners list.',
+        'eeat_keywords_p' => 'Field partners join a network of 2,100+ professionals working on sales, survey, brand promotion activity, and verification services projects — structured opportunities from a registered offline service provider.',
     ],
     'why-work-with-us' => [
         'hero_h1_a' => 'Execution That',
@@ -356,19 +392,23 @@ return [
         'form_brief' => 'Brief Requirement (Optional)',
         'form_brief_ph' => 'Tell us briefly what you\'re looking to achieve.',
         'form_submit_req' => 'Submit Requirement',
+        'eeat_keywords_p' => 'Businesses choose Bisani Brothers for integrated offline and online services — from B2B and B2C sales execution to staffing, BTL ATL field force, and financial services provider support with measurable accountability.',
     ],
     'growth-partner' => [
         'hero_eyebrow' => 'PARTNER PROGRAM',
         'hero_h1_a' => 'Grow with Bisani Brothers.',
         'hero_h1_b' => 'Work on Your Terms.',
         'hero_btn' => 'Apply to Become a Partner',
+        'eeat_keywords_p' => 'Growth partners access consistent field projects — sales onboarding, surveys, brand promotion activity, and verification services — backed by a registered offline service provider with transparent monthly payouts.',
     ],
     'privacy' => [
         'hero_title' => 'Privacy Policy',
         'last_updated' => 'Last updated:',
+        'eeat_keywords_p' => 'Bisani Brothers Private Limited protects visitor and client data in line with published privacy practices — part of our commitment to trustworthy offline and online services partnerships.',
     ],
     'terms' => [
         'hero_title' => 'Terms of Service',
         'last_updated' => 'Last updated:',
+        'eeat_keywords_p' => 'Our terms govern how Bisani Brothers delivers offline and online services to clients and partners — transparent policies that support long-term, compliant business relationships.',
     ],
 ];

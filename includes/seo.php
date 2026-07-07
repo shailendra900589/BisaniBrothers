@@ -354,18 +354,57 @@ function seo_ping_after_job_change(PDO $pdo): void
     job_refresh_seo_signals($pdo);
 }
 
+function seo_organization_knows_about(): array
+{
+    return [
+        'Offline Service Provider',
+        'Sales And Service Support',
+        'Feet on Street Services',
+        'Gig Services',
+        'Brand Promotion Activity',
+        'Offline And Online Services',
+        'BTL ATL Field Force Services',
+        'B2B and B2C Services',
+        'EV Support Services',
+        'Financial Services Provider',
+        'Third Party Payroll Services',
+        'Verification Services',
+        'Staffing Services',
+        'Market Research India',
+        'Field Sales Execution',
+    ];
+}
+
+function seo_organization_id(string $base_url): string
+{
+    return rtrim($base_url, '/') . '/#organization';
+}
+
 function seo_organization_schema(string $base_url): array
 {
+    $root = rtrim($base_url, '/');
     $social = seo_organization_same_as();
 
     return [
         '@context' => 'https://schema.org',
         '@type'    => 'Organization',
+        '@id'      => seo_organization_id($base_url),
         'name'     => SEO_SITE_LEGAL_NAME,
         'alternateName' => 'Bisani Brothers',
-        'url'      => rtrim($base_url, '/') . '/',
-        'logo'     => rtrim($base_url, '/') . '/assets/images/logos.png',
+        'url'      => $root . '/',
+        'logo'     => $root . '/assets/images/logos.png',
         'description' => SEO_HOMEPAGE_META_DESC,
+        'foundingDate' => '2014',
+        'founder' => [
+            '@type' => 'Person',
+            'name'  => 'Ashish Bisani',
+            'jobTitle' => 'Founder',
+        ],
+        'numberOfEmployees' => [
+            '@type'    => 'QuantitativeValue',
+            'minValue' => 2100,
+        ],
+        'knowsAbout' => seo_organization_knows_about(),
         'address'  => [
             '@type'           => 'PostalAddress',
             'streetAddress'   => 'D-1012/13 Indira Nagar',
@@ -413,6 +452,16 @@ function seo_local_business_schema(string $base_url): array
         'telephone' => '+91-522-4530208',
         'email'    => 'contact@bisanibrother.com',
         'priceRange' => '$$',
+        'foundingDate' => '2014',
+        'numberOfEmployees' => [
+            '@type'    => 'QuantitativeValue',
+            'minValue' => 2100,
+        ],
+        'knowsAbout' => seo_organization_knows_about(),
+        'parentOrganization' => [
+            '@type' => 'Organization',
+            '@id'   => seo_organization_id($base_url),
+        ],
         'address'  => [
             '@type'           => 'PostalAddress',
             'streetAddress'   => 'D-1012/13 Indira Nagar',
@@ -500,11 +549,14 @@ function seo_blog_posting_schema(array $post, string $base_url): array
         'dateModified'     => date('c', strtotime($post['created_at'])),
         'author'           => [
             '@type' => 'Organization',
-            'name'  => 'Bisani Brothers Editorial Team',
-            'url'   => $root . '/',
+            '@id'   => seo_organization_id($base_url),
+            'name'  => SEO_SITE_LEGAL_NAME,
+            'url'   => $root . '/about',
+            'knowsAbout' => seo_organization_knows_about(),
         ],
         'publisher'        => [
             '@type' => 'Organization',
+            '@id'   => seo_organization_id($base_url),
             'name'  => SEO_SITE_NAME,
             'logo'  => [
                 '@type' => 'ImageObject',
@@ -537,7 +589,13 @@ function seo_webpage_schema(string $pageTitle, string $pageDesc, string $canonic
 
 function seo_about_page_schema(string $pageTitle, string $pageDesc, string $canonical_url): array
 {
-    return seo_webpage_schema($pageTitle, $pageDesc, $canonical_url, 'AboutPage');
+    $schema = seo_webpage_schema($pageTitle, $pageDesc, $canonical_url, 'AboutPage');
+    $schema['mainEntity'] = [
+        '@type' => 'Organization',
+        '@id'   => seo_organization_id(seo_site_url()),
+    ];
+
+    return $schema;
 }
 
 function seo_contact_page_schema(string $pageTitle, string $pageDesc, string $canonical_url): array

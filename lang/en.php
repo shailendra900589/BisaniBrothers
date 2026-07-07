@@ -169,6 +169,7 @@ return [
         'seo_section_p1'       => 'Bisani Brothers partners with businesses that need reliable sales execution, staffing deployment, and market research at scale. From FinTech and BFSI to education, agritech, and retail, we help organisations expand faster with disciplined field teams, structured reporting, and measurable outcomes.',
         'seo_section_p2'       => 'Our smart, scalable solutions cover merchant onboarding, lead generation, BTL and ATL activations, lending and collection support, and EV infrastructure rollout. Whether you are launching in new cities or strengthening last-mile coverage, we align with your business goals and deliver on-ground performance you can track.',
         'seo_section_p3'       => 'Headquartered in Lucknow and serving clients nationwide, Bisani Brothers combines local market knowledge with process-driven execution. Businesses choose us for transparent operations, trained manpower, and a partnership model built for sustainable growth — not one-off campaigns.',
+        'seo_section_p4'       => 'As a registered offline service provider, we deliver offline and online services together — Sales And Service Support, Staffing Services, Feet on Street Services, Gig Services, BTL ATL Field Force Services, Brand Promotion Activity, B2B and B2C Services, EV Support Services, Verification Services, Third Party Payroll Services, and Financial Services Provider support — with the experience and accountability businesses expect from a long-term execution partner.',
     ],
     'testimonials' => [
         [

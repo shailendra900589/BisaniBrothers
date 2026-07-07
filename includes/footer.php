@@ -248,6 +248,11 @@ if (isset($pdo)) {
 </script>
 <?php endif; ?>
 
+<?php
+require_once __DIR__ . '/eeat-section.php';
+eeat_render_section();
+?>
+
 <footer class="bg-[#173978] pt-16 pb-8 border-t border-white/20">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         

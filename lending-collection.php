@@ -141,6 +141,16 @@ if (str_starts_with($_introBody, $_introPrefix)) {
     </div>
 </section>
 
+<section class="py-16 bg-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8" data-aos="fade-up">
+        <div>
+            <h2 class="text-3xl md:text-4xl font-extrabold text-[#173978] mb-4"><?php echo page_te('seo_financial_title'); ?></h2>
+            <p class="text-gray-600 leading-relaxed text-lg mb-4"><?php echo page_te('seo_financial_p1'); ?></p>
+            <p class="text-gray-600 leading-relaxed text-lg"><?php echo page_te('seo_financial_p2'); ?></p>
+        </div>
+    </div>
+</section>
+
 <section class="py-20 bg-gray-50 relative" id="contact-section">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
