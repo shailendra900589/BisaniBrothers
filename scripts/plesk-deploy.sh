@@ -22,10 +22,10 @@ chmod 755 storage storage/mail-outbox uploads uploads/resumes uploads/marketing 
 if command -v php >/dev/null 2>&1; then
   echo "==> Ensuring uploads folders..."
   php scripts/ensure-uploads-dir.php || echo "WARN: ensure-uploads-dir failed — set IIS_IUSRS Modify on uploads in Plesk"
-  echo "==> Warming locale strings..."
-  php scripts/warm-locale-cache.php || echo "WARN: warm-locale-cache failed"
-  echo "==> Warming blog translations (all locales)..."
-  php scripts/warm-blog-translations.php || echo "WARN: warm-blog-translations failed — run manually on server"
+  echo "==> Seeding SEO blog posts (if missing)..."
+  php scripts/seed-seo-blog-posts.php || echo "WARN: seed-seo-blog-posts failed"
+  echo "==> Seeding case studies (if missing)..."
+  php scripts/seed-case-studies.php || echo "WARN: seed-case-studies failed"
 fi
 
 echo "==> Deploy complete. Run migrations manually if needed:"

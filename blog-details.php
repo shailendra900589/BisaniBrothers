@@ -59,7 +59,6 @@ $metaTitle = trim($post['meta_title'] ?? '');
 $metaDesc = trim($post['meta_desc'] ?? '');
 $pageTitle = ($metaTitle !== '' ? $metaTitle : $post['title']) . " | Bisani Brothers";
 $pageDesc = $metaDesc !== '' ? $metaDesc : seo_strip_text($post['content'], 160);
-$pageKeywords = seo_suggest_blog_keywords($post);
 $pageImg = seo_absolute_image($post['image_path'] ?? '', $base_for_schema);
 $ogType = 'article';
 $articlePublished = date('c', strtotime($post['created_at']));

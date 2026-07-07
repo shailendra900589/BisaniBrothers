@@ -184,6 +184,13 @@ if (str_starts_with($_introBody, $_introPrefix)) {
         </div>
     </section>
 
+    <section class="py-16 md:py-24 bg-white w-full">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8" data-aos="fade-up">
+            <h2 class="text-3xl md:text-4xl font-extrabold text-[#173978] mb-6"><?php echo page_te('seo_brand_title'); ?></h2>
+            <p class="text-gray-600 leading-relaxed text-lg mb-4"><?php echo page_te('seo_brand_p1'); ?></p>
+            <p class="text-gray-600 leading-relaxed text-lg"><?php echo page_te('seo_brand_p2'); ?></p>
+        </div>
+    </section>
 
     <section class="py-16 md:py-20 bg-gray-50 relative w-full" id="btl-enquiry">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

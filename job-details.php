@@ -77,7 +77,6 @@ $pageDesc = trim($job['meta_desc'] ?? '') !== ''
     ? seo_strip_text($job['meta_desc'], 160)
     : seo_strip_text($job['description'] ?? '', 160);
 if (!empty($job['keywords'])) {
-    $pageKeywords = $job['keywords'];
 }
 $pageSchemas = [
     seo_job_posting_schema($job, $base),

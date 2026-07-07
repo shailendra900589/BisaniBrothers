@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $tags = trim($_POST['tags'] ?? '');
     $faq_json = trim($_POST['faq_json'] ?? '');
     $is_orphan = !empty($_POST['is_orphan']) ? 1 : 0;
-    $locale = locale_is_valid($_POST['locale'] ?? null) ? $_POST['locale'] : 'en';
+    $locale = 'en';
     $oldSlug = null;
 
     if ($customSlug !== '') {
@@ -179,7 +179,6 @@ if (!empty($edit_data['slug'])) {
     <main class="flex-1 overflow-y-auto relative">
         <header class="bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-slate-200 px-8 h-20 flex items-center justify-between">
             <h2 class="text-2xl font-bold text-[#173978]">Blog Management</h2>
-            <a href="warm-blogs.php" class="bg-white border border-[#173978] text-[#173978] px-5 py-2 rounded-lg font-bold hover:bg-[#173978] hover:text-white transition-all shadow-md text-sm"><i class="fa-solid fa-language mr-2"></i> Warm translations</a>
             <a href="blogs.php" class="bg-[#2fcaf0] text-[#173978] px-5 py-2 rounded-lg font-bold hover:bg-[#173978] hover:text-white transition-all shadow-md text-sm"><i class="fa-solid fa-plus mr-2"></i> Create New</a>
         </header>
 
@@ -274,12 +273,7 @@ if (!empty($edit_data['slug'])) {
                             </div>
                         </div>
 
-                        <div class="mb-6">
-                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Language</label>
-                            <select name="locale" id="blog-locale" class="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white">
-                                <?php echo locale_admin_options($edit_data['locale'] ?? 'en'); ?>
-                            </select>
-                        </div>
+                        <input type="hidden" name="locale" value="en">
 
                         <div class="mb-6 p-4 border rounded-xl <?php echo !empty($edit_data['is_orphan']) ? 'border-amber-300 bg-amber-50' : 'border-slate-200 bg-white'; ?>">
                             <label class="flex items-start gap-3 cursor-pointer">
@@ -385,13 +379,10 @@ if (!empty($edit_data['slug'])) {
                 .replace(/^-|-$/g, '');
         }
 
-        function blogLocalePath(slug, locale) {
+        function blogLocalePath(slug) {
             const clean = slugify(slug);
             if (!clean) {
                 return '';
-            }
-            if (locale && locale !== 'en') {
-                return locale + '/' + encodeURIComponent(clean).replace(/%2F/g, '/');
             }
             return encodeURIComponent(clean).replace(/%2F/g, '/');
         }
@@ -399,26 +390,23 @@ if (!empty($edit_data['slug'])) {
         function updateSlugPreview() {
             const slugInput = document.getElementById('blog-custom-slug');
             const titleInput = document.getElementById('blog-title');
-            const localeSelect = document.getElementById('blog-locale');
             const preview = document.getElementById('post-public-url');
             if (!slugInput || !preview) {
                 return;
             }
 
-            const locale = localeSelect ? localeSelect.value : 'en';
             let slug = slugInput.value.trim();
             if (!slug && titleInput) {
                 slug = titleInput.value.trim();
             }
 
-            const path = blogLocalePath(slug, locale);
+            const path = blogLocalePath(slug);
             preview.value = path ? (BB_SITE_BASE + '/' + path) : '';
         }
 
         (function initBlogSlugPreview() {
             const slugInput = document.getElementById('blog-custom-slug');
             const titleInput = document.getElementById('blog-title');
-            const localeSelect = document.getElementById('blog-locale');
             if (!slugInput) {
                 return;
             }
@@ -426,9 +414,6 @@ if (!empty($edit_data['slug'])) {
             slugInput.addEventListener('input', updateSlugPreview);
             if (titleInput) {
                 titleInput.addEventListener('input', updateSlugPreview);
-            }
-            if (localeSelect) {
-                localeSelect.addEventListener('change', updateSlugPreview);
             }
             updateSlugPreview();
         })();

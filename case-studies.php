@@ -5,11 +5,7 @@ require_once 'includes/case-study-helpers.php';
 $pageTitle = 'Client Success Stories | Bisani Brothers';
 $pageDesc = 'Read client success stories from Bisani Brothers — how FinTech, NBFC, retail, and enterprise brands scale with disciplined field execution, staffing, and measurable on-ground results across India.';
 
-$cases = [];
-try {
-    $cases = case_study_fetch_published($pdo);
-} catch (PDOException $e) {
-}
+$cases = case_study_fetch_published($pdo);
 
 require_once 'includes/seo.php';
 $caseCanonical = seo_canonical_for_path('case-studies');
@@ -47,6 +43,13 @@ include 'includes/header.php';
                 <div class="aspect-video bg-gray-100 overflow-hidden">
                     <?php require_once __DIR__ . '/includes/upload-storage.php'; ?>
                     <img src="<?php echo htmlspecialchars(upload_storage_public_url($cs['image_path'])); ?>" alt="<?php echo htmlspecialchars($cs['title']); ?>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                </div>
+                <?php else: ?>
+                <div class="aspect-video bg-gradient-to-br from-[#173978] to-[#2fcaf0] flex items-center justify-center p-8">
+                    <div class="text-center text-white">
+                        <i class="fa-solid fa-chart-line text-3xl mb-3 opacity-90"></i>
+                        <p class="text-xs font-bold uppercase tracking-wider opacity-80"><?php echo htmlspecialchars($cs['industry'] ?? 'Case Study'); ?></p>
+                    </div>
                 </div>
                 <?php endif; ?>
                 <div class="p-8">

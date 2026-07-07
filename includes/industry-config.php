@@ -135,32 +135,7 @@ const INDUSTRY_PAGES = [
 
 function industry_get_all(): array
 {
-    $pages = INDUSTRY_PAGES;
-    if (locale_current() === 'hi') {
-        $hiFile = dirname(__DIR__) . '/lang/hi/industries.php';
-        if (is_file($hiFile)) {
-            $hi = require $hiFile;
-            foreach ($pages as $slug => &$page) {
-                if (isset($hi[$slug])) {
-                    $page = array_merge($page, $hi[$slug]);
-                }
-            }
-            unset($page);
-        }
-    } else {
-        $loc = locale_current();
-        $locFile = dirname(__DIR__) . '/lang/' . $loc . '/industries.php';
-        if ($loc !== 'en' && is_file($locFile)) {
-            $tr = require $locFile;
-            foreach ($pages as $slug => &$page) {
-                if (isset($tr[$slug])) {
-                    $page = array_merge($page, $tr[$slug]);
-                }
-            }
-            unset($page);
-        }
-    }
-    return $pages;
+    return INDUSTRY_PAGES;
 }
 
 function industry_get(string $slug): ?array

@@ -19,7 +19,6 @@ if (!$cs) {
 $base = seo_site_url_rtrim();
 $pageTitle = ($cs['meta_title'] ?: $cs['title']) . ' | Bisani Brothers';
 $pageDesc = $cs['meta_desc'] ?: strip_tags($cs['results'] ?? '');
-$pageKeywords = $cs['keywords'] ?? '';
 $pageImg = seo_absolute_image($cs['image_path'] ?? '', $base);
 $ogType = 'article';
 $pageUrl = case_study_post_url($cs['slug'], $base);
@@ -39,6 +38,24 @@ try {
     $stmt->execute([$cs['id']]);
     $related = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
+}
+
+if ($related === [] && case_study_demo_by_slug($cs['slug'] ?? '')) {
+    foreach (case_study_demo_entries() as $demo) {
+        if ($demo['slug'] === ($cs['slug'] ?? '')) {
+            continue;
+        }
+        $related[] = [
+            'title'        => $demo['title'],
+            'slug'         => $demo['slug'],
+            'industry'     => $demo['industry'],
+            'service_line' => $demo['service_line'],
+            'results'      => $demo['results'],
+        ];
+        if (count($related) >= 3) {
+            break;
+        }
+    }
 }
 
 include 'includes/header.php';

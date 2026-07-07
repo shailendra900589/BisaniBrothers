@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/case-studies-demo.php';
+
 function case_study_post_url(string $slug, ?string $base = null, ?string $locale = null): string
 {
     if ($base === null) {
@@ -36,22 +38,29 @@ function case_study_fetch_by_slug(PDO $pdo, string $slug, ?string $locale = null
 {
     require_once __DIR__ . '/locale.php';
     $locale = $locale ?? locale_current();
-    if (case_study_has_locale_column($pdo)) {
-        $stmt = $pdo->prepare('SELECT * FROM case_studies WHERE slug = ? AND locale = ? AND is_published = 1 LIMIT 1');
-        $stmt->execute([$slug, $locale]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (!$row && $locale !== LOCALE_DEFAULT) {
-            $stmt->execute([$slug, LOCALE_DEFAULT]);
+
+    try {
+        if (case_study_has_locale_column($pdo)) {
+            $stmt = $pdo->prepare('SELECT * FROM case_studies WHERE slug = ? AND locale = ? AND is_published = 1 LIMIT 1');
+            $stmt->execute([$slug, $locale]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            if ($row) {
-                $row['_locale_fallback'] = true;
+            if (!$row && $locale !== LOCALE_DEFAULT) {
+                $stmt->execute([$slug, LOCALE_DEFAULT]);
+                $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($row) {
+                    $row['_locale_fallback'] = true;
+                }
             }
+            return $row ?: case_study_demo_by_slug($slug);
         }
-        return $row ?: null;
+        $stmt = $pdo->prepare('SELECT * FROM case_studies WHERE slug = ? AND is_published = 1 LIMIT 1');
+        $stmt->execute([$slug]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $row ?: case_study_demo_by_slug($slug);
+    } catch (PDOException $e) {
+        return case_study_demo_by_slug($slug);
     }
-    $stmt = $pdo->prepare('SELECT * FROM case_studies WHERE slug = ? AND is_published = 1 LIMIT 1');
-    $stmt->execute([$slug]);
-    return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
 }
 
 function case_study_sql_published(string $alias = ''): string
@@ -62,19 +71,25 @@ function case_study_sql_published(string $alias = ''): string
 
 function case_study_fetch_published(PDO $pdo, ?string $industry = null, int $limit = 50): array
 {
-    $sql = 'SELECT * FROM case_studies WHERE ' . case_study_sql_published();
-    if (case_study_has_locale_column($pdo)) {
-        $sql .= ' AND ' . case_study_sql_locale();
+    try {
+        $sql = 'SELECT * FROM case_studies WHERE ' . case_study_sql_published();
+        if (case_study_has_locale_column($pdo)) {
+            $sql .= ' AND ' . case_study_sql_locale();
+        }
+        $params = [];
+        if ($industry) {
+            $sql .= ' AND industry LIKE ?';
+            $params[] = '%' . $industry . '%';
+        }
+        $sql .= ' ORDER BY created_at DESC LIMIT ' . (int) $limit;
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return $rows !== [] ? $rows : case_study_demo_entries();
+    } catch (PDOException $e) {
+        return case_study_demo_entries();
     }
-    $params = [];
-    if ($industry) {
-        $sql .= ' AND industry LIKE ?';
-        $params[] = '%' . $industry . '%';
-    }
-    $sql .= ' ORDER BY created_at DESC LIMIT ' . (int) $limit;
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 function case_study_make_slug(string $title, ?int $id = null): string

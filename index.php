@@ -18,7 +18,7 @@ include 'includes/header.php';
         
         <div class="absolute inset-0 z-0">
             <img src="assets/images/bg_image.webp" 
-                 alt="Hero Background" 
+                 alt="Bisani Brothers field force team executing offline sales support services across India" 
                  class="w-full h-full object-cover"
                  fetchpriority="high"
                  decoding="async">
@@ -77,7 +77,7 @@ include 'includes/header.php';
                 
                 <div class="flex flex-col items-center justify-center p-4 sm:p-6 text-center">
                     <h3 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#173978] mb-2">
-                        <span class="count-up" data-target="10">0</span>+
+                        <span class="count-up" data-target="10">10</span>+
                     </h3>
                     <p class="text-xs sm:text-sm md:text-base font-bold text-gray-600 uppercase tracking-wider">
                         <?php echo htmlspecialchars(t('index.stat_years')); ?>
@@ -86,7 +86,7 @@ include 'includes/header.php';
 
                 <div class="flex flex-col items-center justify-center p-4 sm:p-6 text-center">
                     <h3 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#173978] mb-2">
-                        <span class="count-up" data-target="150">0</span>+
+                        <span class="count-up" data-target="150">150</span>+
                     </h3>
                     <p class="text-xs sm:text-sm md:text-base font-bold text-gray-600 uppercase tracking-wider">
                         <?php echo htmlspecialchars(t('index.stat_clients')); ?>
@@ -95,7 +95,7 @@ include 'includes/header.php';
 
                 <div class="flex flex-col items-center justify-center p-4 sm:p-6 text-center">
                     <h3 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#173978] mb-2">
-                        <span class="count-up" data-target="400000">0</span>+
+                        <span class="count-up" data-target="400000">400000</span>+
                     </h3>
                     <p class="text-xs sm:text-sm md:text-base font-bold text-gray-600 uppercase tracking-wider">
                         <?php echo htmlspecialchars(t('index.stat_outlets')); ?>
@@ -104,7 +104,7 @@ include 'includes/header.php';
 
                 <div class="flex flex-col items-center justify-center p-4 sm:p-6 text-center">
                     <h3 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#173978] mb-2">
-                        <span class="count-up" data-target="2100">0</span>+
+                        <span class="count-up" data-target="2100">2100</span>+
                     </h3>
                     <p class="text-xs sm:text-sm md:text-base font-bold text-gray-600 uppercase tracking-wider">
                         <?php echo htmlspecialchars(t('index.stat_team')); ?>
@@ -124,7 +124,7 @@ include 'includes/header.php';
                     counters.forEach(counter => {
                         const updateCount = () => {
                             const target = +counter.getAttribute('data-target');
-                            const count = +counter.innerText;
+                            let count = parseInt(counter.innerText.replace(/\D/g, ''), 10) || 0;
                             const speed = 100; 
                             const inc = target / speed;
 
@@ -184,7 +184,7 @@ include 'includes/header.php';
                         <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-[#2fcaf0] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                         
                         <div class="w-20 h-20 sm:w-24 sm:h-24 bg-white border border-gray-100 rounded-full flex items-center justify-center mb-6 sm:mb-8 shadow-md group-hover:scale-110 transition-transform duration-300">
-                            <img src="assets/vectors/Sales.png" alt="Sales" class="w-10 h-10 sm:w-12 sm:h-12 object-contain">
+                            <img src="assets/vectors/Sales.png" alt="Sales and service support icon — Bisani Brothers offline execution" class="w-10 h-10 sm:w-12 sm:h-12 object-contain">
                         </div>
                         
                         <h3 class="text-lg sm:text-xl font-bold text-[#173978] mb-3 sm:mb-4"><?php echo htmlspecialchars(t('services.sales')); ?></h3>
@@ -193,7 +193,7 @@ include 'includes/header.php';
                         </p>
                         
                         <a href="<?php echo htmlspecialchars(locale_url('sales-growth')); ?>" class="inline-flex items-center text-sm font-bold text-[#173978] group-hover:text-[#2fcaf0] transition-colors uppercase tracking-wide">
-                            <?php echo htmlspecialchars(t('common.know_more', 'KNOW MORE')); ?> <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+                            <?php echo htmlspecialchars(t('index.link_sales')); ?> <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
                         </a>
                     </div>
                 </div>
@@ -203,7 +203,7 @@ include 'includes/header.php';
                         <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-[#2fcaf0] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                         
                         <div class="w-20 h-20 sm:w-24 sm:h-24 bg-white border border-gray-100 rounded-full flex items-center justify-center mb-6 sm:mb-8 shadow-md group-hover:scale-110 transition-transform duration-300">
-                            <img src="assets/vectors/Survey.png" alt="Survey" class="w-10 h-10 sm:w-12 sm:h-12 object-contain">
+                            <img src="assets/vectors/Survey.png" alt="Survey and market research services icon — Bisani Brothers" class="w-10 h-10 sm:w-12 sm:h-12 object-contain">
                         </div>
                         
                         <h3 class="text-lg sm:text-xl font-bold text-[#173978] mb-3 sm:mb-4"><?php echo htmlspecialchars(t('services.survey')); ?></h3>
@@ -212,7 +212,7 @@ include 'includes/header.php';
                         </p>
                         
                         <a href="<?php echo htmlspecialchars(locale_url('survey-market-research')); ?>" class="inline-flex items-center text-sm font-bold text-[#173978] group-hover:text-[#2fcaf0] transition-colors uppercase tracking-wide">
-                            <?php echo htmlspecialchars(t('common.know_more', 'KNOW MORE')); ?> <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+                            <?php echo htmlspecialchars(t('index.link_survey')); ?> <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
                         </a>
                     </div>
                 </div>
@@ -222,7 +222,7 @@ include 'includes/header.php';
                         <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-[#2fcaf0] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                         
                         <div class="w-20 h-20 sm:w-24 sm:h-24 bg-white border border-gray-100 rounded-full flex items-center justify-center mb-6 sm:mb-8 shadow-md group-hover:scale-110 transition-transform duration-300">
-                            <img src="assets/vectors/Hiring.png" alt="Staffing" class="w-10 h-10 sm:w-12 sm:h-12 object-contain">
+                            <img src="assets/vectors/Hiring.png" alt="Staffing services and field workforce icon — Bisani Brothers" class="w-10 h-10 sm:w-12 sm:h-12 object-contain">
                         </div>
                         
                         <h3 class="text-lg sm:text-xl font-bold text-[#173978] mb-3 sm:mb-4"><?php echo htmlspecialchars(t('services.staffing')); ?></h3>
@@ -231,7 +231,7 @@ include 'includes/header.php';
                         </p>
                         
                         <a href="<?php echo htmlspecialchars(locale_url('staffing-solutions')); ?>" class="inline-flex items-center text-sm font-bold text-[#173978] group-hover:text-[#2fcaf0] transition-colors uppercase tracking-wide">
-                            <?php echo htmlspecialchars(t('common.know_more', 'KNOW MORE')); ?> <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+                            <?php echo htmlspecialchars(t('index.link_staffing')); ?> <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
                         </a>
                     </div>
                 </div>
@@ -241,7 +241,7 @@ include 'includes/header.php';
                         <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-[#2fcaf0] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                         
                         <div class="w-20 h-20 sm:w-24 sm:h-24 bg-white border border-gray-100 rounded-full flex items-center justify-center mb-6 sm:mb-8 shadow-md group-hover:scale-110 transition-transform duration-300">
-                            <img src="assets/vectors/BTL.png" alt="BTL" class="w-10 h-10 sm:w-12 sm:h-12 object-contain">
+                            <img src="assets/vectors/BTL.png" alt="BTL ATL field force and brand activation icon — Bisani Brothers" class="w-10 h-10 sm:w-12 sm:h-12 object-contain">
                         </div>
                         
                         <h3 class="text-lg sm:text-xl font-bold text-[#173978] mb-3 sm:mb-4"><?php echo htmlspecialchars(t('services.btl')); ?></h3>
@@ -250,7 +250,7 @@ include 'includes/header.php';
                         </p>
                         
                         <a href="<?php echo htmlspecialchars(locale_url('btl-atl')); ?>" class="inline-flex items-center text-sm font-bold text-[#173978] group-hover:text-[#2fcaf0] transition-colors uppercase tracking-wide">
-                            <?php echo htmlspecialchars(t('common.know_more', 'KNOW MORE')); ?> <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+                            <?php echo htmlspecialchars(t('index.link_btl')); ?> <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
                         </a>
                     </div>
                 </div>
@@ -260,7 +260,7 @@ include 'includes/header.php';
                         <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-[#2fcaf0] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                         
                         <div class="w-20 h-20 sm:w-24 sm:h-24 bg-white border border-gray-100 rounded-full flex items-center justify-center mb-6 sm:mb-8 shadow-md group-hover:scale-110 transition-transform duration-300">
-                            <img src="assets/vectors/Lending.png" alt="Lending" class="w-10 h-10 sm:w-12 sm:h-12 object-contain">
+                            <img src="assets/vectors/Lending.png" alt="Financial services provider — lending and collection support icon" class="w-10 h-10 sm:w-12 sm:h-12 object-contain">
                         </div>
                         
                         <h3 class="text-lg sm:text-xl font-bold text-[#173978] mb-3 sm:mb-4"><?php echo htmlspecialchars(t('index.lending_title', 'Lending & Collection Solutions')); ?></h3>
@@ -269,7 +269,7 @@ include 'includes/header.php';
                         </p>
                         
                         <a href="<?php echo htmlspecialchars(locale_url('lending-collection')); ?>" class="inline-flex items-center text-sm font-bold text-[#173978] group-hover:text-[#2fcaf0] transition-colors uppercase tracking-wide">
-                            <?php echo htmlspecialchars(t('common.know_more', 'KNOW MORE')); ?> <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+                            <?php echo htmlspecialchars(t('index.link_lending')); ?> <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
                         </a>
                     </div>
                 </div>
@@ -279,7 +279,7 @@ include 'includes/header.php';
                         <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-[#2fcaf0] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                         
                         <div class="w-20 h-20 sm:w-24 sm:h-24 bg-white border border-gray-100 rounded-full flex items-center justify-center mb-6 sm:mb-8 shadow-md group-hover:scale-110 transition-transform duration-300">
-                            <img src="assets/vectors/charging-station.webp" alt="Ev Charging Station" class="w-10 h-10 sm:w-12 sm:h-12 object-contain">
+                            <img src="assets/vectors/charging-station.webp" alt="EV support services and charging infrastructure icon — Bisani Brothers" class="w-10 h-10 sm:w-12 sm:h-12 object-contain">
                         </div>
                         
                         <h3 class="text-lg sm:text-xl font-bold text-[#173978] mb-3 sm:mb-4"><?php echo htmlspecialchars(t('index.ev_title', 'EV Infrastructure Support')); ?></h3>
@@ -288,7 +288,7 @@ include 'includes/header.php';
                         </p>
                         
                         <a href="<?php echo htmlspecialchars(locale_url('ev-infrastructure')); ?>" class="inline-flex items-center text-sm font-bold text-[#173978] group-hover:text-[#2fcaf0] transition-colors uppercase tracking-wide">
-                            <?php echo htmlspecialchars(t('common.know_more', 'KNOW MORE')); ?> <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+                            <?php echo htmlspecialchars(t('index.link_ev')); ?> <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
                         </a>
                     </div>
                 </div>

@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $slug = job_make_slug($title, $location);
     }
     $slug = job_ensure_unique_slug($pdo, $slug, $id ? (int) $id : null, $_POST['locale'] ?? 'en');
-    $locale = locale_is_valid($_POST['locale'] ?? null) ? $_POST['locale'] : 'en';
+    $locale = 'en';
 
     if ($id) {
         $sql = 'UPDATE jobs SET title=?, slug=?, location=?, department=?, type=?, work_mode=?, vacancies=?, description=?, min_salary=?, max_salary=?, education=?, experience_months=?, apply_email=?, meta_title=?, meta_desc=?, keywords=?, status=?, posted_date=?, locale=? WHERE id=?';
@@ -152,13 +152,9 @@ $educationOptions = job_education_options();
                         <?php echo security_csrf_field(); ?>
                         <input type="hidden" name="id" value="<?php echo $edit_data['id'] ?? ''; ?>">
 
+                        <input type="hidden" name="locale" value="en">
+
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Language</label>
-                                <select name="locale" class="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm">
-                                    <?php echo locale_admin_options($edit_data['locale'] ?? 'en'); ?>
-                                </select>
-                            </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Job Status</label>
                                 <label class="flex items-center gap-3 h-[42px] px-4 border border-slate-200 rounded-lg bg-slate-50 cursor-pointer">

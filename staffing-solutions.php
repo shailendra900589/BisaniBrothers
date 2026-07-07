@@ -2,7 +2,17 @@
 session_start();
 require 'db.php';
 require_once 'includes/enquiry-form-handler.php';
+require_once 'includes/seo.php';
 enquiry_process_general_form($pdo, 'Staffing Solutions Page');
+
+$appendPageSchemas = [
+    seo_faq_schema([
+        ['question' => page_t('faq_q1'), 'answer' => page_t('faq_a1')],
+        ['question' => page_t('faq_q2'), 'answer' => page_t('faq_a2')],
+        ['question' => page_t('faq_q3'), 'answer' => page_t('faq_a3')],
+        ['question' => page_t('faq_q4'), 'answer' => page_t('faq_a4')],
+    ], seo_canonical_for_path('staffing-solutions')),
+];
 
 // --- PAGE CONTENT START ---
 include 'includes/header.php';
@@ -179,6 +189,50 @@ if (str_starts_with($_introBody, $_introPrefix)) {
 
         </div>
 
+    </div>
+</section>
+
+<section class="py-24 bg-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16" data-aos="fade-up">
+        <div>
+            <h2 class="text-3xl md:text-4xl font-extrabold text-[#173978] mb-4"><?php echo page_te('seo_fos_title'); ?></h2>
+            <p class="text-gray-600 leading-relaxed text-lg mb-4"><?php echo page_te('seo_fos_p1'); ?></p>
+            <p class="text-gray-600 leading-relaxed text-lg"><?php echo page_te('seo_fos_p2'); ?></p>
+        </div>
+        <div>
+            <h2 class="text-3xl md:text-4xl font-extrabold text-[#173978] mb-4"><?php echo page_te('seo_gig_title'); ?></h2>
+            <p class="text-gray-600 leading-relaxed text-lg mb-4"><?php echo page_te('seo_gig_p1'); ?></p>
+            <p class="text-gray-600 leading-relaxed text-lg"><?php echo page_te('seo_gig_p2'); ?></p>
+        </div>
+        <div>
+            <h2 class="text-3xl md:text-4xl font-extrabold text-[#173978] mb-4"><?php echo page_te('seo_payroll_title'); ?></h2>
+            <p class="text-gray-600 leading-relaxed text-lg mb-4"><?php echo page_te('seo_payroll_p1'); ?></p>
+            <p class="text-gray-600 leading-relaxed text-lg"><?php echo page_te('seo_payroll_p2'); ?></p>
+        </div>
+    </div>
+</section>
+
+<section class="py-16 bg-[#f4f7fc]">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8" data-aos="fade-up">
+        <h2 class="text-2xl md:text-3xl font-extrabold text-[#173978] mb-8 text-center">Staffing Services — Frequently Asked Questions</h2>
+        <div class="space-y-6">
+            <article class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                <h3 class="text-lg font-bold text-[#173978] mb-2"><?php echo page_te('faq_q1'); ?></h3>
+                <p class="text-gray-600 leading-relaxed text-sm"><?php echo page_te('faq_a1'); ?></p>
+            </article>
+            <article class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                <h3 class="text-lg font-bold text-[#173978] mb-2"><?php echo page_te('faq_q2'); ?></h3>
+                <p class="text-gray-600 leading-relaxed text-sm"><?php echo page_te('faq_a2'); ?></p>
+            </article>
+            <article class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                <h3 class="text-lg font-bold text-[#173978] mb-2"><?php echo page_te('faq_q3'); ?></h3>
+                <p class="text-gray-600 leading-relaxed text-sm"><?php echo page_te('faq_a3'); ?></p>
+            </article>
+            <article class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                <h3 class="text-lg font-bold text-[#173978] mb-2"><?php echo page_te('faq_q4'); ?></h3>
+                <p class="text-gray-600 leading-relaxed text-sm"><?php echo page_te('faq_a4'); ?></p>
+            </article>
+        </div>
     </div>
 </section>
 

@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = (int) ($_POST['id'] ?? 0);
     $title = trim($_POST['title'] ?? '');
     $slug = case_study_ensure_unique_slug($pdo, case_study_make_slug($title, $id ?: null), $id ?: null);
-    $locale = locale_is_valid($_POST['locale'] ?? null) ? $_POST['locale'] : 'en';
+    $locale = 'en';
     $image_path = $_POST['existing_image'] ?? '';
     if (!empty($_FILES['image']['name'])) {
         $uploadError = security_validate_upload($_FILES['image'], ['jpg', 'jpeg', 'png', 'gif', 'webp']);
@@ -117,15 +117,7 @@ $editUrl = !empty($edit['slug']) ? case_study_post_url($edit['slug']) : '';
                 <input type="hidden" name="id" value="<?php echo (int) ($edit['id'] ?? 0); ?>">
                 <input type="hidden" name="existing_image" value="<?php echo htmlspecialchars($edit['image_path'] ?? ''); ?>">
                 <input type="text" name="title" placeholder="Case study title" value="<?php echo htmlspecialchars($edit['title'] ?? ''); ?>" class="w-full border rounded-lg px-4 py-3 font-bold text-[#173978]" required>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-xs font-bold text-slate-400 uppercase">Language</label>
-                        <select name="locale" class="w-full border rounded-lg px-3 py-2 text-sm mt-1">
-                            <?php echo locale_admin_options($edit['locale'] ?? 'en'); ?>
-                        </select>
-                    </div>
-                    <div></div>
-                </div>
+                <input type="hidden" name="locale" value="en">
                 <div class="grid grid-cols-3 gap-4">
                     <input type="text" name="client_name" placeholder="Client (optional)" value="<?php echo htmlspecialchars($edit['client_name'] ?? ''); ?>" class="border rounded-lg px-3 py-2 text-sm">
                     <input type="text" name="industry" placeholder="Industry" value="<?php echo htmlspecialchars($edit['industry'] ?? ''); ?>" class="border rounded-lg px-3 py-2 text-sm">

@@ -457,29 +457,7 @@ if (isset($pdo)) {
                 });
         });
     })();
-
-    (function () {
-        var prefetched = new Set();
-        document.querySelectorAll('.locale-switch-link[href]').forEach(function (link) {
-            link.addEventListener('mouseenter', function () {
-                var href = link.getAttribute('href');
-                if (!href || prefetched.has(href)) return;
-                prefetched.add(href);
-                var hint = document.createElement('link');
-                hint.rel = 'prefetch';
-                hint.href = href;
-                document.head.appendChild(hint);
-            }, { passive: true });
-            link.addEventListener('click', function () {
-                document.documentElement.classList.add('locale-switching');
-            }, { passive: true });
-        });
-    })();
 </script>
-<style>
-html.locale-switching { cursor: progress; }
-html.locale-switching body { opacity: 0.92; transition: opacity 0.15s ease; }
-</style>
 
 <?php
 require_once __DIR__ . '/meta-pixel.php';
@@ -503,8 +481,6 @@ if (meta_pixel_active() && in_array($footerScript, ['blog', 'blog-details'], tru
 })();
 </script>
 <?php endif; ?>
-
-<?php include __DIR__ . '/blog-warm-client.php'; ?>
 
 </body>
 </html>

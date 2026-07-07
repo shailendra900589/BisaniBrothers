@@ -96,8 +96,8 @@ return [
         'enquiry_error_desc'     => 'Something went wrong. Please try again in a moment.',
     ],
     'index' => [
-        'hero_line1'  => 'Your Sales & Growth',
-        'hero_line2'  => 'Business Solutions Partner',
+        'hero_line1'  => 'Offline & Online Sales, Service Support',
+        'hero_line2'  => 'and Field Force Solutions Partner',
         'hero_desc'   => 'Empowering businesses with smart, scalable strategies and the tools to scale your business.',
         'cta_growth'  => 'Connect for Growth',
         'cta_services'=> 'Our Services',
@@ -110,6 +110,12 @@ return [
         'services_title' => 'Our Services',
         'services_desc'  => 'End-to-end scalable solutions designed for growing businesses — built for scale, impact, and operational excellence.',
         'services_cta'   => 'Explore Service',
+        'link_sales'     => 'Sales and Service Support',
+        'link_survey'    => 'Survey & Market Research',
+        'link_staffing'  => 'Staffing Services',
+        'link_btl'       => 'BTL ATL Field Force Services',
+        'link_lending'   => 'Financial Services Provider',
+        'link_ev'        => 'EV Support Services',
         'testimonials_title' => 'What Our Clients Say',
         'contact_title'  => 'Connect With Us',
         'contact_desc'   => 'Ready to scale your business? Let\'s talk about how we can help.',
@@ -186,8 +192,8 @@ return [
     ],
     'pages' => [
         'index' => [
-            'title' => 'FinTech Sales & Growth Solutions | Bisani Brothers',
-            'desc'  => 'Empowering businesses with smart, scalable FinTech solutions. Bisani Brothers drives sales, growth, staffing, and on-ground business execution across India.',
+            'title' => 'Offline Service Provider & Sales Execution Company | Bisani Brothers',
+            'desc'  => 'Bisani Brothers is a pan-India offline & online service provider delivering sales support, feet-on-street field force, staffing, BTL ATL activation and EV support services for FinTech, BFSI, Education, AgriTech and Retail brands.',
         ],
         'about' => [
             'title' => 'About Bisani Brothers | Execution Partner India',
@@ -223,28 +229,28 @@ return [
             'desc'  => 'Bisani Brothers serves FinTech, BFSI, retail, EV, education, agritech, and telecom with scalable on-ground execution, staffing deployment, and sales growth solutions across India.',
         ],
         'sales-growth' => [
-            'title' => 'Sales & Growth Solutions India | Bisani',
-            'desc'  => 'Accelerate merchant onboarding, lead generation, and regional sales growth with Bisani Brothers — structured field sales execution and customer acquisition teams across India.',
+            'title' => 'Sales And Service Support | B2B and B2C Services | Bisani Brothers',
+            'desc'  => 'Bisani Brothers delivers sales and service support with B2B and B2C execution — merchant onboarding, lead generation and structured sales operations across India.',
         ],
         'survey-market-research' => [
             'title' => 'Survey & Market Research India | Bisani',
             'desc'  => 'On-ground survey execution and market research by Bisani Brothers — real-time consumer insights, retail audits, and data collection for informed business decisions across India.',
         ],
         'staffing-solutions' => [
-            'title' => 'Staffing Solutions India | Bisani Brothers',
-            'desc'  => 'Bulk hiring and deployment-ready workforce from Bisani Brothers — trained field staff, sales teams, and manpower supply for operations and business expansion across India.',
+            'title' => 'Staffing Services, Feet on Street & Gig Workforce Solutions | Bisani Brothers',
+            'desc'  => 'Bisani Brothers delivers staffing services, feet-on-street (FOS) field force, gig workforce, and third-party payroll services for sales, operations and expansion projects across India.',
         ],
         'btl-atl' => [
-            'title' => 'BTL & ATL Activation India | Bisani Brothers',
-            'desc'  => 'On-ground BTL and ATL brand activations by Bisani Brothers — experiential marketing, retail promotions, and field campaigns that build visibility and drive last-mile sales impact.',
+            'title' => 'BTL ATL Field Force & Brand Promotion Activity Services | Bisani Brothers',
+            'desc'  => 'Bisani Brothers executes BTL ATL field force campaigns and brand promotion activity across India — on-ground activation, audience engagement and last-mile sales impact.',
         ],
         'lending-collection' => [
-            'title' => 'Lending & Collection Services | Bisani',
-            'desc'  => 'NBFC and FinTech lending field teams from Bisani Brothers — loan sales, EMI collection, recovery operations, and compliant customer engagement for financial services across India.',
+            'title' => 'Financial Services Provider | Lending & Collection Solutions | Bisani Brothers',
+            'desc'  => 'Bisani Brothers is a financial services provider supporting lending operations with trained teams for collections, repayments and customer engagement across India.',
         ],
         'ev-infrastructure' => [
-            'title' => 'EV Infrastructure Support India | Bisani',
-            'desc'  => 'EV charging infrastructure rollout support from Bisani Brothers — location identification, partner onboarding, field verification, and network expansion coordination across Indian markets.',
+            'title' => 'EV Support Services & Field Verification Services | Bisani Brothers',
+            'desc'  => 'Bisani Brothers provides EV support services including location identification, partner onboarding, and field verification services to help EV infrastructure companies expand faster.',
         ],
         'partner-with-us' => [
             'title' => 'Partner With Us | Bisani Brothers',

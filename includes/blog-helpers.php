@@ -246,10 +246,7 @@ function blog_pick_locale_rows(array $rows, ?string $locale = null): array
 
 function blog_should_auto_translate(array $post, ?string $locale = null): bool
 {
-    require_once __DIR__ . '/locale.php';
-    $locale = $locale ?? locale_current();
-    $postLocale = $post['locale'] ?? LOCALE_DEFAULT;
-    return $locale !== LOCALE_DEFAULT && $postLocale !== $locale;
+    return false;
 }
 
 function blog_post_url(string $slug, ?string $base = null, ?string $locale = null): string

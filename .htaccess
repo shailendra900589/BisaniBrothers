@@ -75,13 +75,9 @@ RewriteRule ^bb-analytics\.js$ bb-analytics.php [L]
 RewriteRule ^bb-beacon\.gif$ bb-beacon.php [L]
 RewriteRule ^bb-blog-warm$ bb-blog-warm.php [L,QSA]
 
-# Locale URLs (before default English routes) — en uses root; others use /{code}/
-RewriteRule ^(hi|bn|mr|ta|te|gu|kn|ml|pa|or|ur)/?$ index.php?lang=$1 [L,QSA]
-RewriteRule ^(hi|bn|mr|ta|te|gu|kn|ml|pa|or|ur)/jobs/([^/]+)/?$ job-details.php?slug=$2&lang=$1 [L,QSA]
-RewriteRule ^(hi|bn|mr|ta|te|gu|kn|ml|pa|or|ur)/case-studies/([^/]+)/?$ case-study-details.php?slug=$2&lang=$1 [L,QSA]
-RewriteRule ^(hi|bn|mr|ta|te|gu|kn|ml|pa|or|ur)/industries/([^/]+)/?$ industry.php?slug=$2&lang=$1 [L,QSA]
-RewriteRule ^(hi|bn|mr|ta|te|gu|kn|ml|pa|or|ur)/(search|blog|about|contact|careers|faqs|case-studies|industries|privacy|terms|sales-growth|survey-market-research|staffing-solutions|btl-atl|lending-collection|ev-infrastructure|partner-with-us|growth-partner|why-work-with-us|jobs-index|orphan-index)/?$ $2.php?lang=$1 [L,QSA]
-RewriteRule ^(hi|bn|mr|ta|te|gu|kn|ml|pa|or|ur)/([^/]+)/?$ blog-details.php?slug=$2&lang=$1 [L,QSA]
+# Redirect old locale URLs to English (301)
+RewriteRule ^(hi|bn|mr|ta|te|gu|kn|ml|pa|or|ur)/(.*)$ /$2 [R=301,L]
+RewriteRule ^(hi|bn|mr|ta|te|gu|kn|ml|pa|or|ur)/?$ / [R=301,L]
 
 # Job detail pages (must be before blog slug catch-all)
 RewriteRule ^jobs/([^/]+)/?$ job-details.php?slug=$1 [L,QSA]

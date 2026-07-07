@@ -41,10 +41,9 @@ if ($pageLocaleMeta) {
 }
 
 // Default SEO values if not set on individual pages
-if (!isset($pageTitle)) { $pageTitle = "FinTech Sales & Growth Solutions | Bisani Brothers"; }
-if (!isset($pageDesc))  { $pageDesc = "Empowering businesses with smart, scalable FinTech solutions. Bisani Brothers drives sales, growth, staffing, and on-ground business execution across India."; }
+if (!isset($pageTitle)) { $pageTitle = "Offline Service Provider & Sales Execution Company | Bisani Brothers"; }
+if (!isset($pageDesc))  { $pageDesc = SEO_HOMEPAGE_META_DESC; }
 if (!isset($pageImg))   { $pageImg = seo_absolute_image(null, $base_url); }
-if (!isset($pageKeywords)) { $pageKeywords = seo_get_page_keywords(); }
 if (!isset($robotsMeta)) { $robotsMeta = 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'; }
 if (!isset($ogType)) { $ogType = 'website'; }
 if (!isset($pageSchemas)) { $pageSchemas = []; }
@@ -58,7 +57,15 @@ if (empty($pageSchemas) && $scriptName !== '404' && $scriptName !== 'blog-detail
         $pageSchemas[] = seo_webpage_schema($pageTitle, $pageDesc, $canonical_url);
     }
     if (in_array($scriptName, SEO_SERVICE_PAGES, true)) {
-        $pageSchemas[] = seo_service_schema($pageTitle, $pageDesc, $canonical_url);
+        $serviceType = SEO_SERVICE_TYPES[$scriptName] ?? null;
+        $pageSchemas[] = seo_service_schema($pageTitle, $pageDesc, $canonical_url, $serviceType);
+    }
+}
+if (!empty($appendPageSchemas) && is_array($appendPageSchemas)) {
+    foreach ($appendPageSchemas as $schemaBlock) {
+        if (is_array($schemaBlock) && $schemaBlock !== []) {
+            $pageSchemas[] = $schemaBlock;
+        }
     }
 }
 if ($scriptName === 'index') {
@@ -90,12 +97,11 @@ $navbar_height = "h-16";
     <title><?php echo seo_escape($pageTitle); ?></title>
     <meta name="title" content="<?php echo seo_escape($pageTitle); ?>">
     <meta name="description" content="<?php echo seo_escape($pageDesc); ?>">
-    <meta name="keywords" content="<?php echo seo_escape($pageKeywords); ?>">
     <meta name="author" content="Bisani Brothers Pvt. Ltd.">
     <meta name="robots" content="<?php echo seo_escape($robotsMeta); ?>">
     <meta name="googlebot" content="<?php echo seo_escape($robotsMeta); ?>">
     <meta name="bingbot" content="<?php echo seo_escape($robotsMeta); ?>">
-    <meta name="language" content="<?php echo locale_current() === 'hi' ? 'Hindi' : 'English'; ?>">
+    <meta name="language" content="English">
     <meta name="geo.region" content="<?php echo SEO_GEO_REGION; ?>">
     <meta name="geo.placename" content="<?php echo SEO_GEO_PLACENAME; ?>">
     <meta name="rating" content="general">
@@ -125,7 +131,6 @@ $navbar_height = "h-16";
     <meta property="og:image:alt" content="<?php echo seo_escape($pageTitle); ?>">
     <meta property="og:site_name" content="Bisani Brothers">
     <meta property="og:locale" content="<?php echo locale_og_locale(); ?>">
-    <meta property="og:locale:alternate" content="<?php echo locale_current() === 'hi' ? 'en_IN' : 'hi_IN'; ?>">
 
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="<?php echo SEO_TWITTER_HANDLE; ?>">
@@ -267,15 +272,12 @@ $navbar_height = "h-16";
                             <input type="search" name="q" placeholder="<?php echo htmlspecialchars(t('nav.search')); ?>" class="w-32 focus:w-40 transition-all pl-3 pr-7 py-1 text-xs border border-gray-200 rounded-full focus:outline-none focus:border-[#2fcaf0] focus:ring-1 focus:ring-[#2fcaf0]" aria-label="<?php echo htmlspecialchars(t('nav.search')); ?>">
                             <button type="submit" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#173978]"><i class="fa-solid fa-magnifying-glass text-[10px]"></i></button>
                         </form>
-
-                        <?php echo locale_render_switcher(); ?>
                     </div>
 
                     <div class="flex items-center gap-1.5 xl:hidden">
                         <button type="button" onclick="toggleMenu()" class="text-[#173978] hover:text-[#2fcaf0] focus:outline-none p-2">
                             <i class="fa-solid fa-bars text-2xl"></i>
                         </button>
-                        <?php echo locale_render_switcher(); ?>
                     </div>
                 </div>
             </div>

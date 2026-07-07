@@ -168,9 +168,7 @@ function seo_get_all_indexable_urls(PDO $pdo): array
     $paths = [];
 
     foreach (array_keys(SEO_STATIC_PAGES) as $path) {
-        foreach (LOCALE_SUPPORTED as $loc) {
-            $paths[] = seo_locale_path(ltrim($path, '/'), $loc);
-        }
+        $paths[] = seo_locale_path(ltrim($path, '/'));
     }
 
     try {
@@ -180,8 +178,7 @@ function seo_get_all_indexable_urls(PDO $pdo): array
             : "SELECT slug FROM blogs WHERE is_published = 1 ORDER BY created_at DESC";
         $blogs = $pdo->query($blogSql);
         while ($row = $blogs->fetch(PDO::FETCH_ASSOC)) {
-            $loc = $row['locale'] ?? LOCALE_DEFAULT;
-            $paths[] = seo_locale_path(rawurlencode($row['slug']), $loc);
+            $paths[] = seo_locale_path(rawurlencode($row['slug']));
         }
     } catch (Exception $e) {
     }
@@ -195,8 +192,7 @@ function seo_get_all_indexable_urls(PDO $pdo): array
         $jobs = $pdo->query($jobSql);
         while ($row = $jobs->fetch(PDO::FETCH_ASSOC)) {
             $slug = $row['slug'] ?? job_make_slug($row['title'], $row['location'] ?? null);
-            $loc = $row['locale'] ?? LOCALE_DEFAULT;
-            $paths[] = seo_locale_path('jobs/' . rawurlencode($slug), $loc);
+            $paths[] = seo_locale_path('jobs/' . rawurlencode($slug));
         }
     } catch (Exception $e) {
     }
@@ -209,25 +205,20 @@ function seo_get_all_indexable_urls(PDO $pdo): array
             : 'SELECT slug FROM case_studies WHERE is_published = 1';
         $cases = $pdo->query($caseSql);
         while ($row = $cases->fetch(PDO::FETCH_ASSOC)) {
-            $loc = $row['locale'] ?? LOCALE_DEFAULT;
-            $paths[] = seo_locale_path('case-studies/' . rawurlencode($row['slug']), $loc);
+            $paths[] = seo_locale_path('case-studies/' . rawurlencode($row['slug']));
         }
     } catch (Exception $e) {
     }
 
     require_once __DIR__ . '/industry-config.php';
     foreach (array_keys(INDUSTRY_PAGES) as $indSlug) {
-        foreach (LOCALE_SUPPORTED as $loc) {
-            $paths[] = seo_locale_path('industries/' . rawurlencode($indSlug), $loc);
-        }
+        $paths[] = seo_locale_path('industries/' . rawurlencode($indSlug));
     }
 
-    foreach (LOCALE_SUPPORTED as $loc) {
-        $paths[] = seo_locale_path('', $loc);
-        $paths[] = seo_locale_path('search', $loc);
-        $paths[] = seo_locale_path('blog', $loc);
-        $paths[] = seo_locale_path('faqs', $loc);
-    }
+    $paths[] = seo_locale_path('');
+    $paths[] = seo_locale_path('search');
+    $paths[] = seo_locale_path('blog');
+    $paths[] = seo_locale_path('faqs');
 
     $paths[] = 'sitemap.xml';
     $paths[] = 'rss.xml';
@@ -365,18 +356,20 @@ function seo_ping_after_job_change(PDO $pdo): void
 
 function seo_organization_schema(string $base_url): array
 {
+    $social = seo_organization_same_as();
+
     return [
         '@context' => 'https://schema.org',
         '@type'    => 'Organization',
-        'name'     => SEO_SITE_NAME,
+        'name'     => SEO_SITE_LEGAL_NAME,
         'alternateName' => 'Bisani Brothers',
         'url'      => rtrim($base_url, '/') . '/',
         'logo'     => rtrim($base_url, '/') . '/assets/images/logos.png',
-        'description' => 'Integrated business solutions provider specializing in Sales Execution, Staffing, and Market Research across India.',
+        'description' => SEO_HOMEPAGE_META_DESC,
         'address'  => [
             '@type'           => 'PostalAddress',
             'streetAddress'   => 'D-1012/13 Indira Nagar',
-            'addressLocality' => 'Lucknow',
+            'addressLocality' => 'Lucknow, Uttar Pradesh, India',
             'addressRegion'   => 'Uttar Pradesh',
             'postalCode'      => '226016',
             'addressCountry'  => 'IN',
@@ -387,15 +380,19 @@ function seo_organization_schema(string $base_url): array
             'contactType'       => 'customer service',
             'email'             => 'contact@bisanibrother.com',
             'areaServed'        => 'IN',
-            'availableLanguage' => ['en', 'hi'],
+            'availableLanguage' => ['en'],
         ],
-        'sameAs' => [
-            'https://www.linkedin.com/company/bisani-brothers',
-            'https://www.facebook.com/bisanibrothers',
-            'https://www.instagram.com/bisanibrothers',
-            'https://twitter.com/bisanibrothers',
-            SEO_YOUTUBE_CHANNEL,
-        ],
+        'sameAs' => $social,
+    ];
+}
+
+function seo_organization_same_as(): array
+{
+    return [
+        'https://www.linkedin.com/company/bisani-brothers',
+        'https://www.facebook.com/profile.php?id=61582749106777',
+        'https://www.instagram.com/bisanibrothers/',
+        SEO_YOUTUBE_CHANNEL,
     ];
 }
 
@@ -407,12 +404,12 @@ function seo_local_business_schema(string $base_url): array
         '@context' => 'https://schema.org',
         '@type'    => 'LocalBusiness',
         '@id'      => $root . '/#localbusiness',
-        'name'     => SEO_SITE_NAME,
+        'name'     => SEO_SITE_LEGAL_NAME,
         'alternateName' => 'Bisani Brothers',
         'url'      => $root . '/',
         'image'    => $root . '/assets/images/logos.png',
         'logo'     => $root . '/assets/images/logos.png',
-        'description' => 'Empowering businesses with smart, scalable FinTech, sales, staffing, and on-ground business solutions across India.',
+        'description' => SEO_HOMEPAGE_META_DESC,
         'telephone' => '+91-522-4530208',
         'email'    => 'contact@bisanibrother.com',
         'priceRange' => '$$',
@@ -441,13 +438,7 @@ function seo_local_business_schema(string $base_url): array
                 'closes'    => '18:30',
             ],
         ],
-        'sameAs' => [
-            'https://www.linkedin.com/company/bisani-brothers',
-            SEO_YOUTUBE_CHANNEL,
-            'https://www.facebook.com/bisanibrothers',
-            'https://www.instagram.com/bisanibrothers',
-            'https://twitter.com/bisanibrothers',
-        ],
+        'sameAs' => seo_organization_same_as(),
     ];
 }
 
@@ -601,9 +592,9 @@ function seo_canonical_for_path(string $relativePath = ''): string
     return seo_site_url_rtrim() . ($path === '/' ? '/' : '/' . ltrim($path, '/'));
 }
 
-function seo_service_schema(string $serviceName, string $pageDesc, string $canonical_url): array
+function seo_service_schema(string $serviceName, string $pageDesc, string $canonical_url, string|array|null $serviceType = null): array
 {
-    return [
+    $schema = [
         '@context'    => 'https://schema.org',
         '@type'       => 'Service',
         'name'        => $serviceName,
@@ -611,13 +602,52 @@ function seo_service_schema(string $serviceName, string $pageDesc, string $canon
         'url'         => $canonical_url,
         'provider'    => [
             '@type' => 'Organization',
-            'name'  => SEO_SITE_NAME,
+            'name'  => SEO_SITE_LEGAL_NAME,
             'url'   => seo_site_url(),
         ],
         'areaServed'  => [
             '@type' => 'Country',
             'name'  => 'India',
         ],
+    ];
+
+    if ($serviceType !== null && $serviceType !== '') {
+        $schema['serviceType'] = $serviceType;
+    }
+
+    return $schema;
+}
+
+function seo_faq_schema(array $faqItems, string $pageUrl): array
+{
+    if ($faqItems === []) {
+        return [];
+    }
+
+    $entities = [];
+    foreach ($faqItems as $item) {
+        if (empty($item['question']) || empty($item['answer'])) {
+            continue;
+        }
+        $entities[] = [
+            '@type'          => 'Question',
+            'name'           => $item['question'],
+            'acceptedAnswer' => [
+                '@type' => 'Answer',
+                'text'  => strip_tags((string) $item['answer']),
+            ],
+        ];
+    }
+
+    if ($entities === []) {
+        return [];
+    }
+
+    return [
+        '@context'   => 'https://schema.org',
+        '@type'      => 'FAQPage',
+        'mainEntity' => $entities,
+        'url'        => $pageUrl,
     ];
 }
 

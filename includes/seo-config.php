@@ -3,6 +3,8 @@
  * Bisani Brothers — SEO configuration
  */
 define('SEO_SITE_NAME', 'Bisani Brothers Pvt. Ltd.');
+define('SEO_SITE_LEGAL_NAME', 'Bisani Brothers Private Limited');
+define('SEO_HOMEPAGE_META_DESC', 'Bisani Brothers is a pan-India offline & online service provider delivering sales support, feet-on-street field force, staffing, BTL ATL activation and EV support services for FinTech, BFSI, Education, AgriTech and Retail brands.');
 define('SEO_SITE_DOMAIN', 'www.bisanibrothers.com');
 define('SEO_PRODUCTION_URL', 'https://www.bisanibrothers.com');
 define('SEO_INDEXNOW_KEY', 'bisanibrothers2026indexnow');
@@ -65,6 +67,12 @@ define('SEO_SERVICE_PAGES', [
     'partner-with-us',
     'growth-partner',
     'why-work-with-us',
+]);
+
+/** Optional schema.org serviceType per service page slug. */
+define('SEO_SERVICE_TYPES', [
+    'btl-atl'            => 'BTL ATL Field Force Services',
+    'ev-infrastructure'  => ['EV Support Services', 'Verification Services'],
 ]);
 
 define('SEO_PAGE_KEYWORDS', [
