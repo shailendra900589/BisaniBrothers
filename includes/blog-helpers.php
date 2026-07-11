@@ -249,14 +249,49 @@ function blog_should_auto_translate(array $post, ?string $locale = null): bool
     return false;
 }
 
-function blog_post_url(string $slug, ?string $base = null, ?string $locale = null): string
+function blog_post_url(?string $slug, ?string $base = null, ?string $locale = null): string
 {
+    $slug = trim((string) ($slug ?? ''));
     if ($base === null) {
         require_once __DIR__ . '/seo.php';
         $base = seo_site_url_rtrim();
     }
+    if ($slug === '') {
+        return rtrim($base, '/') . '/';
+    }
     require_once __DIR__ . '/locale.php';
+
     return seo_locale_absolute(rawurlencode($slug), $base, $locale);
+}
+
+/**
+ * Lightweight columns for admin blog list (avoids loading full HTML content for every row).
+ *
+ * @return string[]
+ */
+function blog_admin_list_columns(PDO $pdo): array
+{
+    $cols = ['id', 'title', 'slug', 'category', 'created_at'];
+    if (blog_has_column($pdo, 'is_orphan')) {
+        $cols[] = 'is_orphan';
+    }
+
+    return $cols;
+}
+
+function blog_admin_list_sql(PDO $pdo, string $filter = 'all'): string
+{
+    $sql = 'SELECT ' . implode(', ', blog_admin_list_columns($pdo)) . ' FROM blogs';
+    if (blog_has_column($pdo, 'is_orphan')) {
+        if ($filter === 'public') {
+            $sql .= ' WHERE is_orphan = 0';
+        } elseif ($filter === 'orphan') {
+            $sql .= ' WHERE is_orphan = 1';
+        }
+    }
+    $sql .= ' ORDER BY id DESC';
+
+    return $sql;
 }
 
 function blog_fetch_by_slug(PDO $pdo, string $slug, ?string $locale = null): ?array

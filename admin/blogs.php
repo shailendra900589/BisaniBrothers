@@ -23,9 +23,12 @@ admin_handle_post_action(function (int $id) use ($pdo) {
 }, 'blogs.php?msg=Deleted', 'delete');
 
 if (isset($_GET['edit'])) {
-    $stmt = $pdo->prepare("SELECT * FROM blogs WHERE id=?");
-    $stmt->execute([$_GET['edit']]);
+    $stmt = $pdo->prepare('SELECT * FROM blogs WHERE id=?');
+    $stmt->execute([(int) $_GET['edit']]);
     $edit_data = $stmt->fetch();
+    if ($edit_data === false) {
+        $edit_data = null;
+    }
 }
 
 // --- HANDLE FORM SUBMISSION ---
@@ -146,14 +149,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 
 $listFilter = $_GET['filter'] ?? 'all';
-$listSql = 'SELECT * FROM blogs';
-if ($listFilter === 'public') {
-    $listSql .= ' WHERE is_orphan = 0';
-} elseif ($listFilter === 'orphan') {
-    $listSql .= ' WHERE is_orphan = 1';
+if (!in_array($listFilter, ['all', 'public', 'orphan'], true)) {
+    $listFilter = 'all';
 }
-$listSql .= ' ORDER BY id DESC';
-$blogs = $pdo->query($listSql)->fetchAll();
+
+$blogs = [];
+try {
+    $blogs = $pdo->query(blog_admin_list_sql($pdo, $listFilter))->fetchAll();
+} catch (PDOException $e) {
+    error_log('Admin blogs list failed: ' . $e->getMessage());
+    if ($msg === '') {
+        $msg = 'Error: Could not load blog list. Please check the database connection.';
+    }
+}
 
 $editPostUrl = '';
 $siteBaseUrl = seo_site_url_rtrim();
@@ -198,15 +206,17 @@ if (!empty($edit_data['slug'])) {
                         </div>
                     </div>
                     <div class="overflow-y-auto flex-1 p-2 space-y-1">
-                        <?php foreach($blogs as $b):
-                            $bUrl = blog_post_url($b['slug']);
+                        <?php foreach ($blogs as $b):
+                            $bUrl = blog_post_url((string) ($b['slug'] ?? ''));
                             $isOrphan = !empty($b['is_orphan']);
+                            $createdRaw = (string) ($b['created_at'] ?? '');
+                            $createdLabel = $createdRaw !== '' ? date('M d', strtotime($createdRaw)) : '—';
                         ?>
                         <div class="p-3 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all group relative">
                             <h4 class="font-bold text-[#173978] text-sm leading-tight mb-1 truncate pr-8"><?php echo htmlspecialchars($b['title']); ?></h4>
                             <p class="text-[10px] text-slate-400 font-mono truncate mb-1">/<?php echo htmlspecialchars($b['slug']); ?></p>
                             <div class="flex justify-between items-center gap-2">
-                                <span class="text-xs text-slate-400"><?php echo date('M d', strtotime($b['created_at'])); ?></span>
+                                <span class="text-xs text-slate-400"><?php echo htmlspecialchars($createdLabel); ?></span>
                                 <?php if ($isOrphan): ?>
                                 <span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 rounded">Orphan</span>
                                 <?php else: ?>
