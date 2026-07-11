@@ -26,6 +26,9 @@ if command -v php >/dev/null 2>&1; then
   php scripts/seed-seo-blog-posts.php || echo "WARN: seed-seo-blog-posts failed"
   echo "==> Seeding case studies (if missing)..."
   php scripts/seed-case-studies.php || echo "WARN: seed-case-studies failed"
+  echo "==> Blog schema migrations (locale, orphan, tags, faq)..."
+  php scripts/migrate-locale.php || echo "WARN: migrate-locale failed"
+  php scripts/migrate-orphan-blogs.php || echo "WARN: migrate-orphan-blogs failed"
 fi
 
 echo "==> Deploy complete. Run migrations manually if needed:"

@@ -7,6 +7,8 @@ require_once __DIR__ . '/../includes/assets.php';
 require_once '../includes/blog-helpers.php';
 require_once '../includes/seo.php';
 
+blog_admin_ensure_schema($pdo);
+
 $msg = "";
 $edit_data = null;
 
@@ -32,105 +34,139 @@ if (isset($_GET['edit'])) {
 }
 
 // --- HANDLE FORM SUBMISSION ---
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete'])) {
     $id = !empty($_POST['id']) ? (int) $_POST['id'] : null;
-    $title = trim($_POST['title'] ?? '');
-    $customSlug = trim($_POST['custom_slug'] ?? '');
-    $category = $_POST['category'];
-    $content = blog_normalize_content($_POST['content']);
-    $meta_title = $_POST['meta_title'];
-    $meta_desc = $_POST['meta_desc'];
-    $keywords = trim($_POST['keywords'] ?? '');
-    $tags = trim($_POST['tags'] ?? '');
-    $faq_json = trim($_POST['faq_json'] ?? '');
+    $title = trim((string) ($_POST['title'] ?? ''));
+    $customSlug = trim((string) ($_POST['custom_slug'] ?? ''));
+    $category = trim((string) ($_POST['category'] ?? 'Growth Strategy'));
+    $content = blog_normalize_content($_POST['content'] ?? '');
+    $meta_title = trim((string) ($_POST['meta_title'] ?? ''));
+    $meta_desc = trim((string) ($_POST['meta_desc'] ?? ''));
+    $keywords = trim((string) ($_POST['keywords'] ?? ''));
+    $tags = trim((string) ($_POST['tags'] ?? ''));
+    $faq_json = trim((string) ($_POST['faq_json'] ?? ''));
     $is_orphan = !empty($_POST['is_orphan']) ? 1 : 0;
     $locale = 'en';
     $oldSlug = null;
+    $slug = '';
 
-    if ($customSlug !== '') {
-        $slug = blog_normalize_slug($customSlug);
-    } else {
-        $slug = blog_make_slug($title, $id);
-    }
-
-    $slugError = blog_validate_slug($slug);
-    if ($slugError) {
-        $msg = 'Error: ' . $slugError;
-    } else {
-        $slug = blog_ensure_unique_slug($pdo, $slug, $id, $locale);
-    }
-
-    if ($id) {
-        $oldSlugStmt = $pdo->prepare('SELECT slug FROM blogs WHERE id = ?');
-        $oldSlugStmt->execute([$id]);
-        $oldSlug = $oldSlugStmt->fetchColumn() ?: null;
-    }
-
-    // Validate FAQ JSON
-    if ($slugError === null && $faq_json !== '') {
-        $decodedFaq = json_decode($faq_json, true);
-        if (!is_array($decodedFaq)) {
-            $msg = 'Error: FAQ data is invalid. Please try again.';
-        }
-    }
-    
-    // Default to existing image
-    $image_path = $_POST['existing_image'];
-
-    if (!empty($_FILES['image']['name'])) {
-        $upload = security_store_upload($_FILES['image'], '', ['jpg', 'jpeg', 'png', 'gif', 'webp']);
-        if ($upload['ok']) {
-            $image_path = $upload['db_path'];
+    try {
+        if ($customSlug !== '') {
+            $slug = blog_normalize_slug($customSlug);
         } else {
-            $msg = 'Error: ' . $upload['error'];
+            $slug = blog_make_slug($title, $id);
         }
-    }
 
-    // Only save to DB if no upload error
-    if (strpos($msg, 'Error') === false) {
-        require_once '../includes/seo.php';
-        if ($keywords === '') {
-            $keywords = seo_suggest_blog_keywords([
-                'title'    => $title,
-                'category' => $category,
-                'content'  => $content,
-                'keywords' => '',
-            ]);
-        }
-        if ($tags === '' && $keywords !== '') {
-            $tags = implode(', ', array_slice(explode(',', $keywords), 0, 6));
-        }
-        if ($faq_json === '') {
-            $faq_json = null;
+        $slugError = blog_validate_slug($slug);
+        if ($slugError) {
+            $msg = 'Error: ' . $slugError;
+        } else {
+            $slug = blog_ensure_unique_slug($pdo, $slug, $id, $locale);
         }
 
         if ($id) {
-            $sql = 'UPDATE blogs SET title=?, slug=?, category=?, content=?, image_path=?, meta_title=?, meta_desc=?, keywords=?, tags=?, faq_json=?, is_orphan=?, locale=? WHERE id=?';
-            $pdo->prepare($sql)->execute([$title, $slug, $category, $content, $image_path, $meta_title, $meta_desc, $keywords, $tags, $faq_json, $is_orphan, $locale, $id]);
-            require_once '../includes/blog-translate.php';
-            blog_translate_cache_clear((int) $id);
-            $savedSlug = $slug;
-            $msg = 'Blog Updated Successfully';
-            $edit_data = $pdo->prepare('SELECT * FROM blogs WHERE id = ?');
-            $edit_data->execute([$id]);
-            $edit_data = $edit_data->fetch();
-        } else {
-            $sql = 'INSERT INTO blogs (title, slug, category, content, image_path, meta_title, meta_desc, keywords, tags, faq_json, is_orphan, locale) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-            $pdo->prepare($sql)->execute([$title, $slug, $category, $content, $image_path, $meta_title, $meta_desc, $keywords, $tags, $faq_json, $is_orphan, $locale]);
-            $savedSlug = $slug;
-            $msg = 'Blog Created Successfully';
-            $newId = (int) $pdo->lastInsertId();
-            $edit_data = $pdo->prepare('SELECT * FROM blogs WHERE id = ?');
-            $edit_data->execute([$newId]);
-            $edit_data = $edit_data->fetch();
-        }
-        seo_ping_after_blog_change($pdo, $savedSlug, (bool) $is_orphan);
-        if ($oldSlug && $oldSlug !== $savedSlug) {
-            seo_ping_after_blog_change($pdo, $oldSlug, (bool) $is_orphan);
+            $oldSlugStmt = $pdo->prepare('SELECT slug FROM blogs WHERE id = ?');
+            $oldSlugStmt->execute([$id]);
+            $oldSlug = $oldSlugStmt->fetchColumn() ?: null;
         }
 
-    } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $edit_data = array_merge($edit_data ?? [], [
+        if ($slugError === null && $faq_json !== '') {
+            $decodedFaq = json_decode($faq_json, true);
+            if (!is_array($decodedFaq)) {
+                $msg = 'Error: FAQ data is invalid. Please try again.';
+            }
+        }
+
+        $image_path = (string) ($_POST['existing_image'] ?? '');
+
+        if (!empty($_FILES['image']['name'])) {
+            $upload = security_store_upload($_FILES['image'], '', ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+            if ($upload['ok']) {
+                $image_path = $upload['db_path'];
+            } else {
+                $msg = 'Error: ' . $upload['error'];
+            }
+        }
+
+        if (strpos($msg, 'Error') === false) {
+            if ($keywords === '') {
+                $keywords = seo_suggest_blog_keywords([
+                    'title'    => $title,
+                    'category' => $category,
+                    'content'  => $content,
+                    'keywords' => '',
+                ]);
+            }
+            if ($tags === '' && $keywords !== '') {
+                $tags = implode(', ', array_slice(explode(',', $keywords), 0, 6));
+            }
+            if ($faq_json === '') {
+                $faq_json = null;
+            }
+
+            $savedId = blog_admin_save_post($pdo, $id, [
+                'title'      => $title,
+                'slug'       => $slug,
+                'category'   => $category,
+                'content'    => $content,
+                'image_path' => $image_path,
+                'meta_title' => $meta_title,
+                'meta_desc'  => $meta_desc,
+                'keywords'   => $keywords,
+                'tags'       => $tags,
+                'faq_json'   => $faq_json,
+                'is_orphan'  => $is_orphan,
+                'locale'     => $locale,
+            ]);
+
+            try {
+                if (is_file(dirname(__DIR__) . '/includes/blog-translate.php')) {
+                    require_once '../includes/blog-translate.php';
+                    blog_translate_cache_clear($savedId);
+                }
+            } catch (Throwable $e) {
+                error_log('Blog translation cache clear failed: ' . $e->getMessage());
+            }
+
+            $savedSlug = $slug;
+            $msg = $id ? 'Blog Updated Successfully' : 'Blog Created Successfully';
+
+            $reload = $pdo->prepare('SELECT * FROM blogs WHERE id = ?');
+            $reload->execute([$savedId]);
+            $edit_data = $reload->fetch();
+            if ($edit_data === false) {
+                $edit_data = null;
+            }
+
+            try {
+                seo_ping_after_blog_change($pdo, $savedSlug, (bool) $is_orphan);
+                if ($oldSlug && $oldSlug !== $savedSlug) {
+                    seo_ping_after_blog_change($pdo, $oldSlug, (bool) $is_orphan);
+                }
+            } catch (Throwable $e) {
+                error_log('Blog SEO ping failed: ' . $e->getMessage());
+            }
+        } else {
+            $edit_data = array_merge(is_array($edit_data) ? $edit_data : [], [
+                'id'          => $id,
+                'title'       => $title,
+                'slug'        => $slug,
+                'category'    => $category,
+                'content'     => $content,
+                'meta_title'  => $meta_title,
+                'meta_desc'   => $meta_desc,
+                'keywords'    => $keywords,
+                'tags'        => $tags,
+                'faq_json'    => $faq_json,
+                'is_orphan'   => $is_orphan,
+                'locale'      => $locale,
+                'image_path'  => $image_path,
+            ]);
+        }
+    } catch (Throwable $e) {
+        error_log('Admin blog save failed: ' . $e->getMessage());
+        $msg = 'Error: Could not save the article. ' . $e->getMessage();
+        $edit_data = array_merge(is_array($edit_data) ? $edit_data : [], [
             'id'          => $id,
             'title'       => $title,
             'slug'        => $slug,
@@ -143,7 +179,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'faq_json'    => $faq_json,
             'is_orphan'   => $is_orphan,
             'locale'      => $locale,
-            'image_path'  => $_POST['existing_image'] ?? '',
+            'image_path'  => (string) ($_POST['existing_image'] ?? ''),
         ]);
     }
 }

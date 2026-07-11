@@ -37,7 +37,10 @@ function blog_sql_indexable(string $alias = ''): string
 
 function blog_has_column(PDO $pdo, string $column): bool
 {
-    static $cache = [];
+    if (!isset($GLOBALS['_blog_col_cache']) || !is_array($GLOBALS['_blog_col_cache'])) {
+        $GLOBALS['_blog_col_cache'] = [];
+    }
+    $cache = &$GLOBALS['_blog_col_cache'];
     if (array_key_exists($column, $cache)) {
         return $cache[$column];
     }
@@ -48,6 +51,11 @@ function blog_has_column(PDO $pdo, string $column): bool
     }
 
     return $cache[$column];
+}
+
+function blog_reset_column_cache(): void
+{
+    unset($GLOBALS['_blog_col_cache']);
 }
 
 function blog_has_locale_column(PDO $pdo): bool
@@ -292,6 +300,121 @@ function blog_admin_list_sql(PDO $pdo, string $filter = 'all'): string
     $sql .= ' ORDER BY id DESC';
 
     return $sql;
+}
+
+/**
+ * Ensure optional blog columns exist (idempotent — safe on live admin load/save).
+ */
+function blog_admin_ensure_schema(PDO $pdo): void
+{
+    static $done = false;
+    if ($done) {
+        return;
+    }
+    $done = true;
+
+    $alters = [
+        'tags' => static function (PDO $pdo): string {
+            return blog_has_column($pdo, 'keywords')
+                ? 'ALTER TABLE blogs ADD COLUMN tags VARCHAR(500) DEFAULT NULL AFTER keywords'
+                : 'ALTER TABLE blogs ADD COLUMN tags VARCHAR(500) DEFAULT NULL';
+        },
+        'faq_json' => static function (PDO $pdo): string {
+            if (blog_has_column($pdo, 'tags')) {
+                return 'ALTER TABLE blogs ADD COLUMN faq_json MEDIUMTEXT DEFAULT NULL AFTER tags';
+            }
+            if (blog_has_column($pdo, 'keywords')) {
+                return 'ALTER TABLE blogs ADD COLUMN faq_json MEDIUMTEXT DEFAULT NULL AFTER keywords';
+            }
+
+            return 'ALTER TABLE blogs ADD COLUMN faq_json MEDIUMTEXT DEFAULT NULL';
+        },
+        'locale' => static function (PDO $pdo): string {
+            return blog_has_column($pdo, 'slug')
+                ? "ALTER TABLE blogs ADD COLUMN locale VARCHAR(5) NOT NULL DEFAULT 'en' AFTER slug"
+                : "ALTER TABLE blogs ADD COLUMN locale VARCHAR(5) NOT NULL DEFAULT 'en'";
+        },
+        'is_orphan' => static function (PDO $pdo): string {
+            if (blog_has_column($pdo, 'is_published')) {
+                return 'ALTER TABLE blogs ADD COLUMN is_orphan TINYINT(1) NOT NULL DEFAULT 0 AFTER is_published';
+            }
+
+            return 'ALTER TABLE blogs ADD COLUMN is_orphan TINYINT(1) NOT NULL DEFAULT 0';
+        },
+    ];
+
+    foreach ($alters as $col => $sqlBuilder) {
+        if (blog_has_column($pdo, $col)) {
+            continue;
+        }
+        try {
+            $pdo->exec($sqlBuilder($pdo));
+            blog_reset_column_cache();
+        } catch (PDOException $e) {
+            error_log('blog_admin_ensure_schema(' . $col . '): ' . $e->getMessage());
+        }
+    }
+}
+
+/**
+ * Insert or update a blog post using only columns that exist in the live DB.
+ *
+ * @param array<string, mixed> $data
+ */
+function blog_admin_save_post(PDO $pdo, ?int $id, array $data): int
+{
+    blog_admin_ensure_schema($pdo);
+
+    $payload = [
+        'title'       => (string) ($data['title'] ?? ''),
+        'slug'        => (string) ($data['slug'] ?? ''),
+        'category'    => (string) ($data['category'] ?? ''),
+        'content'     => (string) ($data['content'] ?? ''),
+        'image_path'  => (string) ($data['image_path'] ?? ''),
+        'meta_title'  => (string) ($data['meta_title'] ?? ''),
+        'meta_desc'   => (string) ($data['meta_desc'] ?? ''),
+        'keywords'    => (string) ($data['keywords'] ?? ''),
+        'tags'        => $data['tags'] ?? null,
+        'faq_json'    => $data['faq_json'] ?? null,
+        'is_orphan'   => !empty($data['is_orphan']) ? 1 : 0,
+        'locale'      => (string) ($data['locale'] ?? 'en'),
+        'is_published'=> !empty($data['is_published']) ? 1 : 1,
+    ];
+
+    $coreCols = ['title', 'slug', 'category', 'content', 'image_path', 'meta_title', 'meta_desc', 'keywords'];
+    $optionalCols = ['tags', 'faq_json', 'is_orphan', 'locale'];
+
+    $cols = $coreCols;
+    foreach ($optionalCols as $col) {
+        if (blog_has_column($pdo, $col)) {
+            $cols[] = $col;
+        }
+    }
+
+    if ($id === null && blog_has_column($pdo, 'is_published')) {
+        $cols[] = 'is_published';
+    }
+
+    $values = [];
+    foreach ($cols as $col) {
+        $values[] = $payload[$col];
+    }
+
+    if ($id) {
+        $assignments = implode('=?, ', $cols) . '=?';
+        $stmt = $pdo->prepare("UPDATE blogs SET {$assignments} WHERE id=?");
+        $values[] = $id;
+        $stmt->execute($values);
+
+        return $id;
+    }
+
+    $placeholders = implode(', ', array_fill(0, count($cols), '?'));
+    $colList = implode(', ', $cols);
+    $stmt = $pdo->prepare("INSERT INTO blogs ({$colList}) VALUES ({$placeholders})");
+    $stmt->execute($values);
+
+    return (int) $pdo->lastInsertId();
 }
 
 function blog_fetch_by_slug(PDO $pdo, string $slug, ?string $locale = null): ?array
@@ -558,9 +681,9 @@ function blog_has_orphan_posts(PDO $pdo): bool
 /**
  * Sanitize and professionally structure blog HTML (Google Docs / paste cleanup).
  */
-function blog_normalize_content(string $html): string
+function blog_normalize_content(?string $html): string
 {
-    $html = trim($html);
+    $html = trim((string) $html);
     if ($html === '') {
         return '';
     }
