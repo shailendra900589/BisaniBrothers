@@ -6,80 +6,153 @@ require '../db.php';
 require_once __DIR__ . '/../includes/assets.php';
 require_once '../includes/job-helpers.php';
 
-$msg = "";
+job_admin_ensure_schema($pdo);
+
+$msg = isset($_GET['msg']) ? (string) $_GET['msg'] : '';
 $edit_data = null;
 
 admin_handle_post_action(function (int $id) use ($pdo) {
-    $pdo->prepare('DELETE FROM jobs WHERE id=?')->execute([$id]);
-    require_once '../includes/seo.php';
-    seo_ping_after_job_change($pdo);
+    try {
+        $pdo->prepare('DELETE FROM jobs WHERE id=?')->execute([$id]);
+        register_shutdown_function(static function () use ($pdo): void {
+            try {
+                require_once dirname(__DIR__) . '/includes/seo.php';
+                seo_ping_after_job_change($pdo);
+            } catch (Throwable $e) {
+                error_log('Deferred job delete SEO ping failed: ' . $e->getMessage());
+            }
+        });
+    } catch (Throwable $e) {
+        error_log('Admin job delete failed: ' . $e->getMessage());
+        header('Location: jobs.php?msg=' . urlencode('Error: Could not delete the job.'));
+        exit;
+    }
 }, 'jobs.php?msg=Deleted', 'delete');
+
 if (isset($_GET['edit'])) {
-    $stmt = $pdo->prepare("SELECT * FROM jobs WHERE id=?");
-    $stmt->execute([$_GET['edit']]);
+    $stmt = $pdo->prepare('SELECT * FROM jobs WHERE id=?');
+    $stmt->execute([(int) $_GET['edit']]);
     $edit_data = $stmt->fetch();
+    if ($edit_data === false) {
+        $edit_data = null;
+    }
 }
 
 // --- CREATE / UPDATE ---
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $id = $_POST['id'] ?? '';
-    $title = trim($_POST['title'] ?? '');
-    $location = trim($_POST['location'] ?? '');
-    $department = trim($_POST['department'] ?? '');
-    $type = $_POST['type'] ?? 'Full-time';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete'])) {
+    $id = !empty($_POST['id']) ? (int) $_POST['id'] : null;
+    $title = trim((string) ($_POST['title'] ?? ''));
+    $location = trim((string) ($_POST['location'] ?? ''));
+    $department = trim((string) ($_POST['department'] ?? ''));
+    $type = trim((string) ($_POST['type'] ?? 'Full-time'));
     $work_mode = in_array($_POST['work_mode'] ?? '', ['on-site', 'hybrid', 'remote'], true) ? $_POST['work_mode'] : 'on-site';
     $vacancies = max(1, (int) ($_POST['vacancies'] ?? 1));
-    $description = $_POST['description'] ?? '';
+    $description = (string) ($_POST['description'] ?? '');
     $min_salary = $_POST['min_salary'] !== '' && $_POST['min_salary'] !== null ? (int) $_POST['min_salary'] : null;
     $max_salary = $_POST['max_salary'] !== '' && $_POST['max_salary'] !== null ? (int) $_POST['max_salary'] : null;
     $education = job_normalize_education($_POST['education'] ?? 'highSchool');
     $experience_months = (int) ($_POST['experience_months'] ?? 0);
-    $apply_email = trim($_POST['apply_email'] ?? '');
-    $meta_title = trim($_POST['meta_title'] ?? '');
-    $meta_desc = trim($_POST['meta_desc'] ?? '');
-    $keywords = trim($_POST['keywords'] ?? '');
+    $apply_email = trim((string) ($_POST['apply_email'] ?? ''));
+    $meta_title = trim((string) ($_POST['meta_title'] ?? ''));
+    $meta_desc = trim((string) ($_POST['meta_desc'] ?? ''));
+    $keywords = trim((string) ($_POST['keywords'] ?? ''));
     $status = !empty($_POST['status']) ? 1 : 0;
-    $posted_date = trim($_POST['posted_date'] ?? '');
+    $posted_date = trim((string) ($_POST['posted_date'] ?? ''));
     if ($posted_date === '' || !strtotime($posted_date)) {
         $posted_date = date('Y-m-d');
     } else {
         $posted_date = date('Y-m-d', strtotime($posted_date));
     }
-
-    $customSlug = trim($_POST['custom_slug'] ?? '');
-    if ($customSlug !== '') {
-        $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $customSlug), '-'));
-    } else {
-        $slug = job_make_slug($title, $location);
-    }
-    $slug = job_ensure_unique_slug($pdo, $slug, $id ? (int) $id : null, $_POST['locale'] ?? 'en');
     $locale = 'en';
+    $slug = '';
 
-    if ($id) {
-        $sql = 'UPDATE jobs SET title=?, slug=?, location=?, department=?, type=?, work_mode=?, vacancies=?, description=?, min_salary=?, max_salary=?, education=?, experience_months=?, apply_email=?, meta_title=?, meta_desc=?, keywords=?, status=?, posted_date=?, locale=? WHERE id=?';
-        $pdo->prepare($sql)->execute([
-            $title, $slug, $location, $department ?: null, $type, $work_mode, $vacancies, $description,
-            $min_salary, $max_salary, $education, $experience_months,
-            $apply_email ?: null, $meta_title ?: null, $meta_desc ?: null, $keywords ?: null,
-            $status, $posted_date, $locale, $id,
+    try {
+        if ($title === '') {
+            throw new RuntimeException('Job title is required.');
+        }
+        if ($location === '') {
+            throw new RuntimeException('Job location is required.');
+        }
+
+        $customSlug = trim((string) ($_POST['custom_slug'] ?? ''));
+        if ($customSlug !== '') {
+            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $customSlug), '-'));
+        } else {
+            $slug = job_make_slug($title, $location, $id);
+        }
+        $slug = job_ensure_unique_slug($pdo, $slug, $id, $locale);
+
+        $savedId = job_admin_save_post($pdo, $id, [
+            'title'             => $title,
+            'slug'              => $slug,
+            'location'          => $location,
+            'department'        => $department,
+            'type'              => $type,
+            'work_mode'         => $work_mode,
+            'vacancies'         => $vacancies,
+            'description'       => $description,
+            'min_salary'        => $min_salary,
+            'max_salary'        => $max_salary,
+            'education'         => $education,
+            'experience_months' => $experience_months,
+            'apply_email'       => $apply_email,
+            'meta_title'        => $meta_title,
+            'meta_desc'         => $meta_desc,
+            'keywords'          => $keywords,
+            'status'            => $status,
+            'posted_date'       => $posted_date,
+            'locale'            => $locale,
         ]);
-        $msg = 'Job Updated Successfully';
-    } else {
-        $sql = 'INSERT INTO jobs (title, slug, location, department, type, work_mode, vacancies, description, status, min_salary, max_salary, education, experience_months, apply_email, meta_title, meta_desc, keywords, posted_date, locale) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-        $pdo->prepare($sql)->execute([
-            $title, $slug, $location, $department ?: null, $type, $work_mode, $vacancies, $description, $status,
-            $min_salary, $max_salary, $education, $experience_months,
-            $apply_email ?: null, $meta_title ?: null, $meta_desc ?: null, $keywords ?: null,
-            $posted_date, $locale,
+
+        register_shutdown_function(static function () use ($pdo): void {
+            try {
+                require_once dirname(__DIR__) . '/includes/seo.php';
+                seo_ping_after_job_change($pdo);
+            } catch (Throwable $e) {
+                error_log('Deferred job SEO ping failed: ' . $e->getMessage());
+            }
+        });
+
+        $successMsg = $id ? 'Job Updated Successfully' : 'Job Posted Successfully';
+        header('Location: jobs.php?edit=' . $savedId . '&msg=' . urlencode($successMsg));
+        exit;
+    } catch (Throwable $e) {
+        error_log('Admin job save failed: ' . $e->getMessage());
+        $msg = 'Error: Could not save the job. ' . $e->getMessage();
+        $edit_data = array_merge(is_array($edit_data) ? $edit_data : [], [
+            'id'                => $id,
+            'title'             => $title,
+            'slug'              => $slug,
+            'location'          => $location,
+            'department'        => $department,
+            'type'              => $type,
+            'work_mode'         => $work_mode,
+            'vacancies'         => $vacancies,
+            'description'       => $description,
+            'min_salary'        => $min_salary,
+            'max_salary'        => $max_salary,
+            'education'         => $education,
+            'experience_months' => $experience_months,
+            'apply_email'       => $apply_email,
+            'meta_title'        => $meta_title,
+            'meta_desc'         => $meta_desc,
+            'keywords'          => $keywords,
+            'status'            => $status,
+            'posted_date'       => $posted_date,
+            'locale'            => $locale,
         ]);
-        $msg = 'Job Posted Successfully';
     }
-    require_once '../includes/seo.php';
-    seo_ping_after_job_change($pdo);
-    header('Location: jobs.php?edit=' . ($id ?: $pdo->lastInsertId()) . '&msg=' . urlencode($msg));
-    exit;
 }
-$jobs = $pdo->query("SELECT * FROM jobs ORDER BY id DESC")->fetchAll();
+
+$jobs = [];
+try {
+    $jobs = $pdo->query(job_admin_list_sql($pdo))->fetchAll();
+} catch (PDOException $e) {
+    error_log('Admin jobs list failed: ' . $e->getMessage());
+    if ($msg === '') {
+        $msg = 'Error: Could not load job list. Please check the database connection.';
+    }
+}
 
 $editJobUrl = '';
 $validThroughPreview = '';
@@ -146,7 +219,14 @@ $educationOptions = job_education_options();
                         <i class="fa-solid fa-briefcase text-[#2fcaf0]"></i> <?php echo $edit_data ? 'Edit Job Posting' : 'Post New Job'; ?>
                     </h3>
 
-                    <?php if ($msg || isset($_GET['msg'])) echo "<div class='mb-6 p-4 bg-green-50 text-green-700 rounded-lg border border-green-200 flex items-center'><i class='fa-solid fa-check-circle mr-3'></i> " . security_e($msg ?: ($_GET['msg'] ?? '')) . "</div>"; ?>
+                    <?php
+                    if ($msg || isset($_GET['msg'])) {
+                        $message = $msg ?: (string) ($_GET['msg'] ?? '');
+                        $isError = stripos($message, 'error') !== false;
+                        $color = $isError ? 'red' : 'green';
+                        echo "<div class='mb-6 p-4 bg-{$color}-50 text-{$color}-700 rounded-lg border border-{$color}-200 flex items-center'><i class='fa-solid fa-" . ($isError ? 'circle-exclamation' : 'check-circle') . " mr-3'></i> " . security_e($message) . "</div>";
+                    }
+                    ?>
 
                     <form method="POST" id="job-form">
                         <?php echo security_csrf_field(); ?>

@@ -688,6 +688,32 @@ function blog_normalize_content(?string $html): string
         return '';
     }
 
+    try {
+        if (strlen($html) > 400000) {
+            $html = preg_replace('/<script\b[^>]*>.*?<\/script>/is', '', $html) ?? $html;
+
+            return trim($html);
+        }
+
+        return blog_normalize_content_inner($html);
+    } catch (Throwable $e) {
+        error_log('blog_normalize_content failed: ' . $e->getMessage());
+        $html = preg_replace('/<script\b[^>]*>.*?<\/script>/is', '', $html) ?? $html;
+
+        return trim($html);
+    }
+}
+
+/**
+ * @internal Heavy HTML cleanup for admin/editor content.
+ */
+function blog_normalize_content_inner(string $html): string
+{
+    $html = trim($html);
+    if ($html === '') {
+        return '';
+    }
+
     $html = html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     $html = preg_replace('/<script\b[^>]*>.*?<\/script>/is', '', $html);
     $html = preg_replace('/\s(data-start|data-end|data-path-to-node|data-index-in-node|data-pm-slice|dir|id)="[^"]*"/i', '', $html);

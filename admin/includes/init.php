@@ -60,6 +60,37 @@ function admin_post_button(
         . '</form>';
 }
 
+function admin_post_body_too_large(): bool
+{
+    if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+        return false;
+    }
+
+    $length = (int) ($_SERVER['CONTENT_LENGTH'] ?? 0);
+
+    return $length > 0 && empty($_POST) && empty($_FILES);
+}
+
+function admin_fail_post_body_too_large(): void
+{
+    if (!admin_post_body_too_large()) {
+        return;
+    }
+
+    http_response_code(413);
+    header('Content-Type: text/html; charset=utf-8');
+    echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Request too large</title></head><body style="font-family:sans-serif;max-width:720px;margin:3rem auto;padding:0 1rem;">';
+    echo '<h1>Form too large</h1>';
+    echo '<p>The server rejected this save because the article or job description exceeds <code>post_max_size</code>.</p>';
+    echo '<p>Try removing large inline images from the editor, saving a shorter draft, or ask hosting to increase PHP <code>post_max_size</code> and <code>upload_max_filesize</code>.</p>';
+    echo '<p><a href="javascript:history.back()">Go back</a></p>';
+    echo '</body></html>';
+    exit;
+}
+
+// Reject oversized POST bodies before CSRF (empty $_POST when body was truncated).
+admin_fail_post_body_too_large();
+
 // All admin POST requests require a valid CSRF token.
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     security_require_csrf();

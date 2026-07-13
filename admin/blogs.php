@@ -9,18 +9,37 @@ require_once '../includes/seo.php';
 
 blog_admin_ensure_schema($pdo);
 
-$msg = "";
+$msg = isset($_GET['msg']) ? (string) $_GET['msg'] : '';
 $edit_data = null;
+$listFilter = $_GET['filter'] ?? 'all';
+if (!in_array($listFilter, ['all', 'public', 'orphan'], true)) {
+    $listFilter = 'all';
+}
 
 admin_handle_post_action(function (int $id) use ($pdo) {
-    $delStmt = $pdo->prepare('SELECT slug FROM blogs WHERE id=?');
-    $delStmt->execute([$id]);
-    $deletedSlug = $delStmt->fetchColumn();
-    $pdo->prepare('DELETE FROM blogs WHERE id=?')->execute([$id]);
-    require_once '../includes/blog-translate.php';
-    blog_translate_cache_clear($id);
-    if ($deletedSlug) {
-        seo_ping_after_blog_change($pdo, $deletedSlug);
+    try {
+        $delStmt = $pdo->prepare('SELECT slug FROM blogs WHERE id=?');
+        $delStmt->execute([$id]);
+        $deletedSlug = $delStmt->fetchColumn();
+        $pdo->prepare('DELETE FROM blogs WHERE id=?')->execute([$id]);
+        if (is_file(dirname(__DIR__) . '/includes/blog-translate.php')) {
+            require_once '../includes/blog-translate.php';
+            blog_translate_cache_clear($id);
+        }
+        if ($deletedSlug) {
+            register_shutdown_function(static function () use ($pdo, $deletedSlug): void {
+                try {
+                    require_once dirname(__DIR__) . '/includes/seo.php';
+                    seo_ping_after_blog_change($pdo, (string) $deletedSlug);
+                } catch (Throwable $e) {
+                    error_log('Deferred blog delete SEO ping failed: ' . $e->getMessage());
+                }
+            });
+        }
+    } catch (Throwable $e) {
+        error_log('Admin blog delete failed: ' . $e->getMessage());
+        header('Location: blogs.php?msg=' . urlencode('Error: Could not delete the article.'));
+        exit;
     }
 }, 'blogs.php?msg=Deleted', 'delete');
 
@@ -39,7 +58,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete'])) {
     $title = trim((string) ($_POST['title'] ?? ''));
     $customSlug = trim((string) ($_POST['custom_slug'] ?? ''));
     $category = trim((string) ($_POST['category'] ?? 'Growth Strategy'));
-    $content = blog_normalize_content($_POST['content'] ?? '');
     $meta_title = trim((string) ($_POST['meta_title'] ?? ''));
     $meta_desc = trim((string) ($_POST['meta_desc'] ?? ''));
     $keywords = trim((string) ($_POST['keywords'] ?? ''));
@@ -49,8 +67,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete'])) {
     $locale = 'en';
     $oldSlug = null;
     $slug = '';
+    $content = '';
 
     try {
+        if (trim($title) === '') {
+            throw new RuntimeException('Article title is required.');
+        }
+
+        $content = blog_normalize_content($_POST['content'] ?? '');
         if ($customSlug !== '') {
             $slug = blog_normalize_slug($customSlug);
         } else {
@@ -129,23 +153,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete'])) {
             }
 
             $savedSlug = $slug;
-            $msg = $id ? 'Blog Updated Successfully' : 'Blog Created Successfully';
+            $successMsg = $id ? 'Blog Updated Successfully' : 'Blog Created Successfully';
 
-            $reload = $pdo->prepare('SELECT * FROM blogs WHERE id = ?');
-            $reload->execute([$savedId]);
-            $edit_data = $reload->fetch();
-            if ($edit_data === false) {
-                $edit_data = null;
+            $pingSlugs = [[$savedSlug, (bool) $is_orphan]];
+            if ($oldSlug && $oldSlug !== $savedSlug) {
+                $pingSlugs[] = [$oldSlug, (bool) $is_orphan];
             }
-
-            try {
-                seo_ping_after_blog_change($pdo, $savedSlug, (bool) $is_orphan);
-                if ($oldSlug && $oldSlug !== $savedSlug) {
-                    seo_ping_after_blog_change($pdo, $oldSlug, (bool) $is_orphan);
+            register_shutdown_function(static function () use ($pdo, $pingSlugs): void {
+                try {
+                    require_once dirname(__DIR__) . '/includes/seo.php';
+                    foreach ($pingSlugs as [$pingSlug, $orphan]) {
+                        seo_ping_after_blog_change($pdo, (string) $pingSlug, $orphan);
+                    }
+                } catch (Throwable $e) {
+                    error_log('Deferred blog SEO ping failed: ' . $e->getMessage());
                 }
-            } catch (Throwable $e) {
-                error_log('Blog SEO ping failed: ' . $e->getMessage());
+            });
+
+            $redirect = 'blogs.php?edit=' . $savedId . '&msg=' . urlencode($successMsg);
+            if ($listFilter !== 'all') {
+                $redirect .= '&filter=' . urlencode($listFilter);
             }
+            header('Location: ' . $redirect);
+            exit;
         } else {
             $edit_data = array_merge(is_array($edit_data) ? $edit_data : [], [
                 'id'          => $id,
@@ -182,11 +212,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete'])) {
             'image_path'  => (string) ($_POST['existing_image'] ?? ''),
         ]);
     }
-}
-
-$listFilter = $_GET['filter'] ?? 'all';
-if (!in_array($listFilter, ['all', 'public', 'orphan'], true)) {
-    $listFilter = 'all';
 }
 
 $blogs = [];
@@ -415,7 +440,7 @@ if (!empty($edit_data['slug'])) {
     ]);
     ?>
     <script>
-        const initialFaq = <?php echo json_encode(blog_parse_faq($edit_data['faq_json'] ?? ''), JSON_UNESCAPED_UNICODE); ?>;
+        const initialFaq = <?php echo json_encode(blog_parse_faq($edit_data['faq_json'] ?? ''), JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE); ?>;
         const BB_SITE_BASE = <?php echo json_encode($siteBaseUrl); ?>;
 
         function slugify(str) {

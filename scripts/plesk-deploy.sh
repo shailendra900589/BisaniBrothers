@@ -29,6 +29,8 @@ if command -v php >/dev/null 2>&1; then
   echo "==> Blog schema migrations (locale, orphan, tags, faq)..."
   php scripts/migrate-locale.php || echo "WARN: migrate-locale failed"
   php scripts/migrate-orphan-blogs.php || echo "WARN: migrate-orphan-blogs failed"
+  echo "==> Job schema migrations..."
+  php scripts/migrate-job-fields.php || echo "WARN: migrate-job-fields failed"
 fi
 
 echo "==> Deploy complete. Run migrations manually if needed:"

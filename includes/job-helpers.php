@@ -2,7 +2,10 @@
 
 function job_has_column(PDO $pdo, string $column): bool
 {
-    static $cache = [];
+    if (!isset($GLOBALS['_job_col_cache']) || !is_array($GLOBALS['_job_col_cache'])) {
+        $GLOBALS['_job_col_cache'] = [];
+    }
+    $cache = &$GLOBALS['_job_col_cache'];
     if (array_key_exists($column, $cache)) {
         return $cache[$column];
     }
@@ -11,7 +14,13 @@ function job_has_column(PDO $pdo, string $column): bool
     } catch (PDOException $e) {
         $cache[$column] = false;
     }
+
     return $cache[$column];
+}
+
+function job_reset_column_cache(): void
+{
+    unset($GLOBALS['_job_col_cache']);
 }
 
 function job_work_mode_label(?string $mode): string
@@ -101,16 +110,123 @@ function job_ensure_unique_slug(PDO $pdo, string $slug, ?int $excludeId = null, 
 
 function job_has_locale_column(PDO $pdo): bool
 {
-    static $cache = null;
-    if ($cache !== null) {
-        return $cache;
+    return job_has_column($pdo, 'locale');
+}
+
+/**
+ * @return string[]
+ */
+function job_admin_list_columns(PDO $pdo): array
+{
+    $cols = ['id', 'title', 'slug', 'location', 'type', 'status', 'posted_date'];
+    foreach (['department', 'work_mode'] as $optional) {
+        if (job_has_column($pdo, $optional)) {
+            $cols[] = $optional;
+        }
     }
-    try {
-        $cache = (bool) $pdo->query("SHOW COLUMNS FROM jobs LIKE 'locale'")->fetch();
-    } catch (PDOException $e) {
-        $cache = false;
+
+    return $cols;
+}
+
+function job_admin_list_sql(PDO $pdo): string
+{
+    return 'SELECT ' . implode(', ', job_admin_list_columns($pdo)) . ' FROM jobs ORDER BY id DESC';
+}
+
+function job_admin_ensure_schema(PDO $pdo): void
+{
+    static $done = false;
+    if ($done) {
+        return;
     }
-    return $cache;
+    $done = true;
+
+    $alters = [
+        'department' => "ALTER TABLE jobs ADD COLUMN department VARCHAR(100) DEFAULT NULL",
+        'work_mode'  => "ALTER TABLE jobs ADD COLUMN work_mode VARCHAR(20) NOT NULL DEFAULT 'on-site'",
+        'vacancies'  => "ALTER TABLE jobs ADD COLUMN vacancies INT NOT NULL DEFAULT 1",
+        'apply_email'=> "ALTER TABLE jobs ADD COLUMN apply_email VARCHAR(255) DEFAULT NULL",
+        'meta_title' => "ALTER TABLE jobs ADD COLUMN meta_title VARCHAR(120) DEFAULT NULL",
+        'meta_desc'  => "ALTER TABLE jobs ADD COLUMN meta_desc VARCHAR(255) DEFAULT NULL",
+        'keywords'   => "ALTER TABLE jobs ADD COLUMN keywords VARCHAR(255) DEFAULT NULL",
+        'locale'     => "ALTER TABLE jobs ADD COLUMN locale VARCHAR(5) NOT NULL DEFAULT 'en'",
+    ];
+
+    foreach ($alters as $col => $sql) {
+        if (job_has_column($pdo, $col)) {
+            continue;
+        }
+        try {
+            $pdo->exec($sql);
+            job_reset_column_cache();
+        } catch (PDOException $e) {
+            error_log('job_admin_ensure_schema(' . $col . '): ' . $e->getMessage());
+        }
+    }
+}
+
+/**
+ * @param array<string, mixed> $data
+ */
+function job_admin_save_post(PDO $pdo, ?int $id, array $data): int
+{
+    job_admin_ensure_schema($pdo);
+
+    $payload = [
+        'title'             => (string) ($data['title'] ?? ''),
+        'slug'              => (string) ($data['slug'] ?? ''),
+        'location'          => (string) ($data['location'] ?? ''),
+        'department'        => ($data['department'] ?? '') !== '' ? (string) $data['department'] : null,
+        'type'              => (string) ($data['type'] ?? 'Full-time'),
+        'work_mode'         => (string) ($data['work_mode'] ?? 'on-site'),
+        'vacancies'         => max(1, (int) ($data['vacancies'] ?? 1)),
+        'description'       => (string) ($data['description'] ?? ''),
+        'min_salary'        => $data['min_salary'] ?? null,
+        'max_salary'        => $data['max_salary'] ?? null,
+        'education'         => (string) ($data['education'] ?? 'highSchool'),
+        'experience_months' => (int) ($data['experience_months'] ?? 0),
+        'apply_email'       => ($data['apply_email'] ?? '') !== '' ? (string) $data['apply_email'] : null,
+        'meta_title'        => ($data['meta_title'] ?? '') !== '' ? (string) $data['meta_title'] : null,
+        'meta_desc'         => ($data['meta_desc'] ?? '') !== '' ? (string) $data['meta_desc'] : null,
+        'keywords'          => ($data['keywords'] ?? '') !== '' ? (string) $data['keywords'] : null,
+        'status'            => !empty($data['status']) ? 1 : 0,
+        'posted_date'       => (string) ($data['posted_date'] ?? date('Y-m-d')),
+        'locale'            => (string) ($data['locale'] ?? 'en'),
+    ];
+
+    $coreCols = ['title', 'slug', 'location', 'type', 'description', 'status', 'posted_date'];
+    $optionalCols = [
+        'department', 'work_mode', 'vacancies', 'min_salary', 'max_salary',
+        'education', 'experience_months', 'apply_email', 'meta_title', 'meta_desc', 'keywords', 'locale',
+    ];
+
+    $cols = $coreCols;
+    foreach ($optionalCols as $col) {
+        if (job_has_column($pdo, $col)) {
+            $cols[] = $col;
+        }
+    }
+
+    $values = [];
+    foreach ($cols as $col) {
+        $values[] = $payload[$col];
+    }
+
+    if ($id) {
+        $assignments = implode('=?, ', $cols) . '=?';
+        $stmt = $pdo->prepare("UPDATE jobs SET {$assignments} WHERE id=?");
+        $values[] = $id;
+        $stmt->execute($values);
+
+        return $id;
+    }
+
+    $placeholders = implode(', ', array_fill(0, count($cols), '?'));
+    $colList = implode(', ', $cols);
+    $stmt = $pdo->prepare("INSERT INTO jobs ({$colList}) VALUES ({$placeholders})");
+    $stmt->execute($values);
+
+    return (int) $pdo->lastInsertId();
 }
 
 function job_sql_locale(string $alias = '', ?string $locale = null): string
@@ -121,13 +237,18 @@ function job_sql_locale(string $alias = '', ?string $locale = null): string
     return "{$p}locale = '" . str_replace("'", "''", $locale) . "'";
 }
 
-function job_post_url(string $slug, ?string $base = null, ?string $locale = null): string
+function job_post_url(?string $slug, ?string $base = null, ?string $locale = null): string
 {
+    $slug = trim((string) ($slug ?? ''));
     if ($base === null) {
         require_once __DIR__ . '/seo.php';
         $base = seo_site_url_rtrim();
     }
+    if ($slug === '') {
+        return rtrim($base, '/') . '/careers';
+    }
     require_once __DIR__ . '/locale.php';
+
     return seo_locale_absolute('jobs/' . rawurlencode($slug), $base, $locale);
 }
 
