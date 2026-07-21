@@ -20,7 +20,10 @@ if (isset($_GET['edit'])) {
     $edit = $s->fetch();
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
+    require_once __DIR__ . '/../includes/admin-schema.php';
+    admin_ensure_seo_text_columns($pdo, 'case_studies');
+
     $id = (int) ($_POST['id'] ?? 0);
     $title = trim($_POST['title'] ?? '');
     $slug = case_study_ensure_unique_slug($pdo, case_study_make_slug($title, $id ?: null), $id ?: null);
@@ -41,32 +44,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
-    $fields = [
-        $title, $slug,
-        trim($_POST['client_name'] ?? ''),
-        trim($_POST['industry'] ?? ''),
-        trim($_POST['service_line'] ?? ''),
-        $_POST['challenge'] ?? '',
-        $_POST['approach'] ?? '',
-        $_POST['results'] ?? '',
-        trim($_POST['quote'] ?? ''),
-        $_POST['content'] ?? '',
-        $image_path,
-        trim($_POST['meta_title'] ?? ''),
-        trim($_POST['meta_desc'] ?? ''),
-        trim($_POST['keywords'] ?? ''),
-        !empty($_POST['is_published']) ? 1 : 0,
-        $locale,
-    ];
-    if ($id) {
-        $pdo->prepare('UPDATE case_studies SET title=?, slug=?, client_name=?, industry=?, service_line=?, challenge=?, approach=?, results=?, quote=?, content=?, image_path=?, meta_title=?, meta_desc=?, keywords=?, is_published=?, locale=? WHERE id=?')
-            ->execute([...$fields, $id]);
-    } else {
-        $pdo->prepare('INSERT INTO case_studies (title, slug, client_name, industry, service_line, challenge, approach, results, quote, content, image_path, meta_title, meta_desc, keywords, is_published, locale) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
-            ->execute($fields);
+
+    if ($msg === '') {
+        try {
+            $fields = [
+                admin_fit_column_text($pdo, 'case_studies', 'title', $title),
+                admin_fit_column_text($pdo, 'case_studies', 'slug', $slug),
+                admin_fit_column_text($pdo, 'case_studies', 'client_name', trim($_POST['client_name'] ?? '')),
+                admin_fit_column_text($pdo, 'case_studies', 'industry', trim($_POST['industry'] ?? '')),
+                admin_fit_column_text($pdo, 'case_studies', 'service_line', trim($_POST['service_line'] ?? '')),
+                $_POST['challenge'] ?? '',
+                $_POST['approach'] ?? '',
+                $_POST['results'] ?? '',
+                admin_fit_column_text($pdo, 'case_studies', 'quote', trim($_POST['quote'] ?? '')),
+                $_POST['content'] ?? '',
+                admin_fit_column_text($pdo, 'case_studies', 'image_path', $image_path),
+                admin_fit_column_text($pdo, 'case_studies', 'meta_title', trim($_POST['meta_title'] ?? '')),
+                admin_fit_column_text($pdo, 'case_studies', 'meta_desc', trim($_POST['meta_desc'] ?? '')),
+                admin_fit_column_text($pdo, 'case_studies', 'keywords', trim($_POST['keywords'] ?? '')),
+                !empty($_POST['is_published']) ? 1 : 0,
+                $locale,
+            ];
+            if ($id) {
+                $pdo->prepare('UPDATE case_studies SET title=?, slug=?, client_name=?, industry=?, service_line=?, challenge=?, approach=?, results=?, quote=?, content=?, image_path=?, meta_title=?, meta_desc=?, keywords=?, is_published=?, locale=? WHERE id=?')
+                    ->execute([...$fields, $id]);
+            } else {
+                $pdo->prepare('INSERT INTO case_studies (title, slug, client_name, industry, service_line, challenge, approach, results, quote, content, image_path, meta_title, meta_desc, keywords, is_published, locale) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+                    ->execute($fields);
+            }
+            seo_ping_after_case_study_change($pdo);
+            header('Location: case-studies.php?msg=Saved');
+            exit();
+        } catch (PDOException $e) {
+            error_log('case-studies save: ' . $e->getMessage());
+            $msg = 'Error: Could not save the case study. ' . $e->getMessage();
+        }
     }
-    seo_ping_after_case_study_change($pdo);
-    header('Location: case-studies.php?msg=Saved'); exit();
 }
 
 $list = $pdo->query('SELECT id, title, slug, industry, is_published, created_at FROM case_studies ORDER BY created_at DESC')->fetchAll();
@@ -106,6 +119,7 @@ $editUrl = !empty($edit['slug']) ? case_study_post_url($edit['slug']) : '';
         </div>
         <div class="lg:col-span-8 bg-white rounded-2xl border p-8">
             <h3 class="font-bold text-[#173978] mb-6"><?php echo $edit ? 'Edit' : 'New'; ?> Case Study</h3>
+            <?php if ($msg): ?><div class="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm"><?php echo htmlspecialchars($msg); ?></div><?php endif; ?>
             <?php if ($editUrl): ?>
             <div class="mb-4 p-3 bg-slate-50 rounded-lg text-sm font-mono flex gap-2 items-center">
                 <span class="flex-1 truncate"><?php echo htmlspecialchars($editUrl); ?></span>

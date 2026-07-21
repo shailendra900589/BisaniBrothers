@@ -146,9 +146,9 @@ function job_admin_ensure_schema(PDO $pdo): void
         'work_mode'  => "ALTER TABLE jobs ADD COLUMN work_mode VARCHAR(20) NOT NULL DEFAULT 'on-site'",
         'vacancies'  => "ALTER TABLE jobs ADD COLUMN vacancies INT NOT NULL DEFAULT 1",
         'apply_email'=> "ALTER TABLE jobs ADD COLUMN apply_email VARCHAR(255) DEFAULT NULL",
-        'meta_title' => "ALTER TABLE jobs ADD COLUMN meta_title VARCHAR(120) DEFAULT NULL",
-        'meta_desc'  => "ALTER TABLE jobs ADD COLUMN meta_desc VARCHAR(255) DEFAULT NULL",
-        'keywords'   => "ALTER TABLE jobs ADD COLUMN keywords VARCHAR(255) DEFAULT NULL",
+        'meta_title' => "ALTER TABLE jobs ADD COLUMN meta_title VARCHAR(255) DEFAULT NULL",
+        'meta_desc'  => "ALTER TABLE jobs ADD COLUMN meta_desc VARCHAR(500) DEFAULT NULL",
+        'keywords'   => "ALTER TABLE jobs ADD COLUMN keywords VARCHAR(1000) DEFAULT NULL",
         'locale'     => "ALTER TABLE jobs ADD COLUMN locale VARCHAR(5) NOT NULL DEFAULT 'en'",
     ];
 
@@ -163,6 +163,10 @@ function job_admin_ensure_schema(PDO $pdo): void
             error_log('job_admin_ensure_schema(' . $col . '): ' . $e->getMessage());
         }
     }
+
+    require_once __DIR__ . '/admin-schema.php';
+    admin_ensure_seo_text_columns($pdo, 'jobs');
+    job_reset_column_cache();
 }
 
 /**
@@ -171,6 +175,7 @@ function job_admin_ensure_schema(PDO $pdo): void
 function job_admin_save_post(PDO $pdo, ?int $id, array $data): int
 {
     job_admin_ensure_schema($pdo);
+    require_once __DIR__ . '/admin-schema.php';
 
     $payload = [
         'title'             => (string) ($data['title'] ?? ''),
@@ -193,6 +198,10 @@ function job_admin_save_post(PDO $pdo, ?int $id, array $data): int
         'posted_date'       => (string) ($data['posted_date'] ?? date('Y-m-d')),
         'locale'            => (string) ($data['locale'] ?? 'en'),
     ];
+
+    $payload = admin_fit_row_to_table($pdo, 'jobs', $payload, [
+        'title', 'slug', 'location', 'department', 'type', 'apply_email', 'meta_title', 'meta_desc', 'keywords',
+    ]);
 
     $coreCols = ['title', 'slug', 'location', 'type', 'description', 'status', 'posted_date'];
     $optionalCols = [

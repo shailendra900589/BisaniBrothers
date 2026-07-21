@@ -12,7 +12,7 @@ $columns = [
     'apply_email' => "VARCHAR(255) DEFAULT NULL AFTER experience_months",
     'meta_title'  => "VARCHAR(120) DEFAULT NULL AFTER apply_email",
     'meta_desc'   => "VARCHAR(255) DEFAULT NULL AFTER meta_title",
-    'keywords'    => "VARCHAR(255) DEFAULT NULL AFTER meta_desc",
+    'keywords'    => "VARCHAR(1000) DEFAULT NULL AFTER meta_desc",
 ];
 
 foreach ($columns as $name => $def) {
@@ -23,6 +23,11 @@ foreach ($columns as $name => $def) {
     } else {
         echo "Skip jobs.{$name} (exists)\n";
     }
+}
+
+require_once dirname(__DIR__) . '/includes/admin-schema.php';
+foreach (admin_ensure_seo_text_columns($pdo, 'jobs') as $col => $action) {
+    echo "jobs.{$col}: {$action}\n";
 }
 
 echo "Job fields migration complete.\n";

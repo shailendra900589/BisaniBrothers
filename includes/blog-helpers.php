@@ -313,6 +313,8 @@ function blog_admin_ensure_schema(PDO $pdo): void
     }
     $done = true;
 
+    require_once __DIR__ . '/admin-schema.php';
+
     $alters = [
         'tags' => static function (PDO $pdo): string {
             return blog_has_column($pdo, 'keywords')
@@ -354,6 +356,9 @@ function blog_admin_ensure_schema(PDO $pdo): void
             error_log('blog_admin_ensure_schema(' . $col . '): ' . $e->getMessage());
         }
     }
+
+    admin_ensure_seo_text_columns($pdo, 'blogs');
+    blog_reset_column_cache();
 }
 
 /**
@@ -364,6 +369,7 @@ function blog_admin_ensure_schema(PDO $pdo): void
 function blog_admin_save_post(PDO $pdo, ?int $id, array $data): int
 {
     blog_admin_ensure_schema($pdo);
+    require_once __DIR__ . '/admin-schema.php';
 
     $payload = [
         'title'       => (string) ($data['title'] ?? ''),
@@ -380,6 +386,10 @@ function blog_admin_save_post(PDO $pdo, ?int $id, array $data): int
         'locale'      => (string) ($data['locale'] ?? 'en'),
         'is_published'=> !empty($data['is_published']) ? 1 : 1,
     ];
+
+    $payload = admin_fit_row_to_table($pdo, 'blogs', $payload, [
+        'title', 'slug', 'category', 'image_path', 'meta_title', 'meta_desc', 'keywords', 'tags',
+    ]);
 
     $coreCols = ['title', 'slug', 'category', 'content', 'image_path', 'meta_title', 'meta_desc', 'keywords'];
     $optionalCols = ['tags', 'faq_json', 'is_orphan', 'locale'];

@@ -31,6 +31,8 @@ if command -v php >/dev/null 2>&1; then
   php scripts/migrate-orphan-blogs.php || echo "WARN: migrate-orphan-blogs failed"
   echo "==> Job schema migrations..."
   php scripts/migrate-job-fields.php || echo "WARN: migrate-job-fields failed"
+  echo "==> SEO text column migrations (keywords, tags, meta)..."
+  php scripts/migrate-seo-text-columns.php || echo "WARN: migrate-seo-text-columns failed"
 fi
 
 echo "==> Deploy complete. Run migrations manually if needed:"

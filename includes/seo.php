@@ -125,7 +125,8 @@ function seo_suggest_blog_keywords(array $post): string
     $parts[] = 'business insights India';
 
     $joined = implode(', ', array_unique(array_filter(array_map('trim', $parts))));
-    return mb_substr($joined, 0, 500);
+
+    return mb_substr($joined, 0, 980);
 }
 
 function seo_escape($value): string
